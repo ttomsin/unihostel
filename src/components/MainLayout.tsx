@@ -42,7 +42,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   };
 
   const menuItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/', roles: ['superadmin', 'admin', 'student'] },
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', roles: ['superadmin', 'admin', 'student'] },
     { label: 'Profile', icon: User, path: '/profile', roles: ['superadmin', 'admin', 'student'] },
     { label: 'Complaints', icon: MessageSquare, path: '/complaints', roles: ['superadmin', 'admin', 'student'] },
     { label: 'Admins', icon: Users, path: '/admins', roles: ['superadmin'] },
@@ -108,7 +108,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <Separator orientation="vertical" className="mr-2 h-4" />
             <div className="flex-1">
               <h1 className="text-lg font-semibold capitalize">
-                {location.pathname === '/' ? 'Dashboard' : location.pathname.substring(1)}
+                {location.pathname === '/dashboard' ? 'Dashboard' : location.pathname.substring(1)}
               </h1>
             </div>
           </header>

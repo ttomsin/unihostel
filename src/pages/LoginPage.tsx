@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Loader2 } from 'lucide-react';
+import { Building2, Loader2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 const LoginPage: React.FC = () => {
@@ -15,8 +15,14 @@ const LoginPage: React.FC = () => {
   const [matricNumber, setMatricNumber] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleStudentLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +34,7 @@ const LoginPage: React.FC = () => {
       });
       login(response.data);
       toast.success('Login successful');
-      navigate('/');
+      navigate('/dashboard');
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Login failed');
     } finally {
@@ -46,7 +52,7 @@ const LoginPage: React.FC = () => {
       });
       login(response.data);
       toast.success('Login successful');
-      navigate('/');
+      navigate('/dashboard');
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Login failed');
     } finally {
@@ -137,6 +143,10 @@ const LoginPage: React.FC = () => {
           <p>
             Contact your hostel administrator if you have trouble logging in.
           </p>
+          <Link to="/" className="flex items-center gap-2 text-primary hover:underline">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Link>
         </CardFooter>
       </Card>
     </div>
