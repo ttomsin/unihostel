@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
-import { UserResponse } from '@/types';
+import { UserResponse, Hostel, Faculty, Chapel } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
   Card, 
   CardContent, 
@@ -28,6 +29,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, Search, UserPlus, Mail, Phone, Hash, Building2, Home } from 'lucide-react';
@@ -36,9 +44,26 @@ import { toast } from 'sonner';
 const Students: React.FC = () => {
   const { user } = useAuth();
   const [students, setStudents] = useState<UserResponse[]>([]);
+  const [hostels, setHostels] = useState<Hostel[]>([]);
+  const [faculties, setFaculties] = useState<Faculty[]>([]);
+  const [chapels, setChapels] = useState<Chapel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  const [newStudent, setNewStudent] = useState({
+    full_name: '',
+    email: '',
+    matric_number: '',
+    password: '',
+    gender: 'unspecified',
+    level: 100,
+    hostel_id: '',
+    faculty_id: '',
+    chapel_id: '',
+    phone: ''
+  });
 
   const fetchStudents = async () => {
     setIsLoading(true);
@@ -54,9 +79,54 @@ const Students: React.FC = () => {
     }
   };
 
+  const fetchMetadata = async () => {
+    try {
+      const [hostelsRes, facultiesRes, chapelsRes] = await Promise.all([
+        api.get('/superadmin/hostels'),
+        api.get('/superadmin/faculties'),
+        api.get('/superadmin/chapels')
+      ]);
+      setHostels(hostelsRes.data);
+      setFaculties(facultiesRes.data);
+      setChapels(chapelsRes.data);
+    } catch (error) {
+      console.error('Failed to fetch metadata', error);
+    }
+  };
+
   useEffect(() => {
     fetchStudents();
+    if (user?.role === 'superadmin') {
+      fetchMetadata();
+    }
   }, [user]);
+
+  const handleCreateStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await api.post('/superadmin/students', newStudent);
+      toast.success('Student added successfully');
+      setNewStudent({
+        full_name: '',
+        email: '',
+        matric_number: '',
+        password: '',
+        gender: 'unspecified',
+        level: 100,
+        hostel_id: '',
+        faculty_id: '',
+        chapel_id: '',
+        phone: ''
+      });
+      setIsAddDialogOpen(false);
+      fetchStudents();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to add student');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const filteredStudents = students.filter(student => 
     student.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -74,10 +144,161 @@ const Students: React.FC = () => {
           </p>
         </div>
         {user?.role === 'superadmin' && (
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Add Student
-          </Button>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add Student
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add New Student</DialogTitle>
+                <DialogDescription>
+                  Create a new student account and assign them to academic and residential units.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreateStudent} className="grid grid-cols-2 gap-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="full_name">Full Name</Label>
+                  <Input 
+                    id="full_name" 
+                    value={newStudent.full_name}
+                    onChange={(e) => setNewStudent(prev => ({ ...prev, full_name: e.target.value }))}
+                    required 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email" 
+                    type="email"
+                    value={newStudent.email}
+                    onChange={(e) => setNewStudent(prev => ({ ...prev, email: e.target.value }))}
+                    required 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="matric_number">Matric Number</Label>
+                  <Input 
+                    id="matric_number" 
+                    value={newStudent.matric_number}
+                    onChange={(e) => setNewStudent(prev => ({ ...prev, matric_number: e.target.value }))}
+                    required 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input 
+                    id="password" 
+                    type="password"
+                    value={newStudent.password}
+                    onChange={(e) => setNewStudent(prev => ({ ...prev, password: e.target.value }))}
+                    required 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gender">Gender</Label>
+                  <Select 
+                    value={newStudent.gender} 
+                    onValueChange={(val) => setNewStudent(prev => ({ ...prev, gender: val }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="unspecified">Unspecified</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="level">Level</Label>
+                  <Select 
+                    value={newStudent.level.toString()} 
+                    onValueChange={(val) => setNewStudent(prev => ({ ...prev, level: parseInt(val) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="100">100</SelectItem>
+                      <SelectItem value="200">200</SelectItem>
+                      <SelectItem value="300">300</SelectItem>
+                      <SelectItem value="400">400</SelectItem>
+                      <SelectItem value="500">500</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="hostel">Hostel</Label>
+                  <Select 
+                    value={newStudent.hostel_id} 
+                    onValueChange={(val) => setNewStudent(prev => ({ ...prev, hostel_id: val }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select hostel" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {hostels.map(h => (
+                        <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="faculty">Faculty</Label>
+                  <Select 
+                    value={newStudent.faculty_id} 
+                    onValueChange={(val) => setNewStudent(prev => ({ ...prev, faculty_id: val }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select faculty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {faculties.map(f => (
+                        <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="chapel">Chapel</Label>
+                  <Select 
+                    value={newStudent.chapel_id} 
+                    onValueChange={(val) => setNewStudent(prev => ({ ...prev, chapel_id: val }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select chapel" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {chapels.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input 
+                    id="phone" 
+                    value={newStudent.phone}
+                    onChange={(e) => setNewStudent(prev => ({ ...prev, phone: e.target.value }))}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <DialogFooter>
+                    <Button type="submit" disabled={isSubmitting} className="w-full">
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Add Student
+                    </Button>
+                  </DialogFooter>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         )}
       </div>
 
