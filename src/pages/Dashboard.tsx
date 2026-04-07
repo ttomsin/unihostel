@@ -104,72 +104,43 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.total_rooms || 0}</div>
-            <p className="text-xs text-muted-foreground">{stats?.occupied_rooms || 0} occupied</p>
+            <p className="text-xs text-muted-foreground">Total capacity: {stats?.occupancy?.total_capacity || 0}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Complaints</CardTitle>
-            <AlertCircle className="h-4 w-4 text-destructive" />
+            <CardTitle className="text-sm font-medium">Total Admins</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.pending_complaints || 0}</div>
-            <p className="text-xs text-muted-foreground">Requires attention</p>
+            <div className="text-2xl font-bold">{stats?.total_admins || 0}</div>
+            <p className="text-xs text-muted-foreground">Hostel administrators</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Hostel Occupancy</CardTitle>
-            <CardDescription>Number of students per hostel</CardDescription>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats?.hostel_occupancy || []}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Gender Distribution</CardTitle>
-            <CardDescription>Student population by gender</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={stats?.gender_distribution || []}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="count"
-                    nameKey="gender"
-                    label
-                  >
-                    {stats?.gender_distribution?.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={index === 0 ? 'hsl(var(--primary))' : 'hsl(var(--muted))'} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Overall Occupancy</CardTitle>
+          <CardDescription>University-wide hostel occupancy status</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex justify-between text-sm">
+            <span>Occupied Beds</span>
+            <span className="font-medium">
+              {stats?.occupancy?.occupied || 0} / {stats?.occupancy?.total_capacity || 0}
+            </span>
+          </div>
+          <div className="h-4 w-full bg-muted rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-primary transition-all" 
+              style={{ 
+                width: `${stats?.occupancy?.total_capacity ? (stats.occupancy.occupied / stats.occupancy.total_capacity) * 100 : 0}%` 
+              }}
+            />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 
@@ -188,51 +159,64 @@ const Dashboard: React.FC = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available Rooms</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Rooms</CardTitle>
             <Home className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.available_rooms || 0}</div>
-            <p className="text-xs text-muted-foreground">Out of {stats?.total_rooms || 0} total</p>
+            <div className="text-2xl font-bold">{stats?.total_rooms || 0}</div>
+            <p className="text-xs text-muted-foreground">In your assigned hostel</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Resolved Complaints</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <CardTitle className="text-sm font-medium">Total Complaints</CardTitle>
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.resolved_complaints || 0}</div>
-            <p className="text-xs text-muted-foreground">This month</p>
+            <div className="text-2xl font-bold">{stats?.total_complaints || 0}</div>
+            <p className="text-xs text-muted-foreground">Awaiting resolution</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Complaints</CardTitle>
-            <Clock className="h-4 w-4 text-orange-500" />
+            <CardTitle className="text-sm font-medium">Occupancy Rate</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.pending_complaints || 0}</div>
-            <p className="text-xs text-muted-foreground">Awaiting action</p>
+            <div className="text-2xl font-bold">
+              {stats?.occupancy?.total_capacity ? Math.round((stats.occupancy.occupied / stats.occupancy.total_capacity) * 100) : 0}%
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {stats?.occupancy?.occupied || 0} / {stats?.occupancy?.total_capacity || 0} beds
+            </p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Room Occupancy Rate</CardTitle>
-          <CardDescription>Percentage of filled beds per room</CardDescription>
+          <CardTitle>Hostel Occupancy Details</CardTitle>
+          <CardDescription>Real-time bed availability</CardDescription>
         </CardHeader>
-        <CardContent className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={stats?.room_stats || []}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="number" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="occupancy_rate" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+        <CardContent className="space-y-4">
+          <div className="h-4 w-full bg-muted rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-primary transition-all" 
+              style={{ 
+                width: `${stats?.occupancy?.total_capacity ? (stats.occupancy.occupied / stats.occupancy.total_capacity) * 100 : 0}%` 
+              }}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="flex flex-col">
+              <span className="text-muted-foreground">Occupied</span>
+              <span className="font-bold">{stats?.occupancy?.occupied || 0}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-muted-foreground">Total Capacity</span>
+              <span className="font-bold">{stats?.occupancy?.total_capacity || 0}</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

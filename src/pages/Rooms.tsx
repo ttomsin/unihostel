@@ -55,9 +55,11 @@ const Rooms: React.FC = () => {
 
   const [batchRooms, setBatchRooms] = useState({
     hostel_id: '',
-    start_room_number: 1,
-    end_room_number: 10,
-    capacity: 4
+    start_letter: 'A',
+    end_letter: 'A',
+    room_count: 10,
+    capacity: 4,
+    gender: 'male'
   });
 
   const fetchHostels = async () => {
@@ -77,7 +79,6 @@ const Rooms: React.FC = () => {
       else if (user?.role === 'admin') endpoint = '/admins/rooms';
       else if (user?.role === 'student') {
         if (selectedHostel === 'all') {
-          // If student hasn't selected a hostel, maybe show their own or list all available
           endpoint = user.hostel_id ? `/students/hostels/${user.hostel_id}/rooms` : '/superadmin/rooms';
         } else {
           endpoint = `/students/hostels/${selectedHostel}/rooms`;
@@ -118,7 +119,7 @@ const Rooms: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await api.post('/superadmin/rooms/batch', batchRooms);
+      await api.post('/superadmin/rooms', batchRooms);
       toast.success('Rooms created successfully');
       setIsBatchDialogOpen(false);
       fetchRooms();
@@ -184,35 +185,60 @@ const Rooms: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="start">Start Number</Label>
+                    <Label htmlFor="start">Start Letter</Label>
                     <Input 
                       id="start" 
-                      type="number" 
-                      value={batchRooms.start_room_number}
-                      onChange={(e) => setBatchRooms(prev => ({ ...prev, start_room_number: parseInt(e.target.value) }))}
+                      value={batchRooms.start_letter}
+                      onChange={(e) => setBatchRooms(prev => ({ ...prev, start_letter: e.target.value }))}
                       required 
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="end">End Number</Label>
+                    <Label htmlFor="end">End Letter</Label>
                     <Input 
                       id="end" 
+                      value={batchRooms.end_letter}
+                      onChange={(e) => setBatchRooms(prev => ({ ...prev, end_letter: e.target.value }))}
+                      required 
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="room_count">Room Count</Label>
+                    <Input 
+                      id="room_count" 
                       type="number" 
-                      value={batchRooms.end_room_number}
-                      onChange={(e) => setBatchRooms(prev => ({ ...prev, end_room_number: parseInt(e.target.value) }))}
+                      value={batchRooms.room_count}
+                      onChange={(e) => setBatchRooms(prev => ({ ...prev, room_count: parseInt(e.target.value) }))}
+                      required 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="capacity">Capacity</Label>
+                    <Input 
+                      id="capacity" 
+                      type="number" 
+                      value={batchRooms.capacity}
+                      onChange={(e) => setBatchRooms(prev => ({ ...prev, capacity: parseInt(e.target.value) }))}
                       required 
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="capacity">Capacity per Room</Label>
-                  <Input 
-                    id="capacity" 
-                    type="number" 
-                    value={batchRooms.capacity}
-                    onChange={(e) => setBatchRooms(prev => ({ ...prev, capacity: parseInt(e.target.value) }))}
-                    required 
-                  />
+                  <Label htmlFor="gender">Gender</Label>
+                  <Select 
+                    value={batchRooms.gender} 
+                    onValueChange={(val) => setBatchRooms(prev => ({ ...prev, gender: val }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <DialogFooter>
                   <Button type="submit" disabled={isSubmitting}>
