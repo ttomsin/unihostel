@@ -30,8 +30,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, MessageSquare, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Loader2, Plus, MessageSquare, Clock, CheckCircle2, AlertCircle, MoreHorizontal } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -86,6 +101,16 @@ const Complaints: React.FC = () => {
       toast.error(error.response?.data?.error || 'Failed to submit complaint');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateStatus = async (complaintId: string, status: string) => {
+    try {
+      await api.put(`/admins/complaints/${complaintId}/status`, { status });
+      toast.success(`Status updated to ${status}`);
+      fetchComplaints();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to update status');
     }
   };
 
@@ -186,6 +211,7 @@ const Complaints: React.FC = () => {
                     <TableHead>Hostel</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Date</TableHead>
+                    {(user?.role === 'admin' || user?.role === 'superadmin') && <TableHead className="text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -198,6 +224,30 @@ const Complaints: React.FC = () => {
                       <TableCell className="text-muted-foreground">
                         {format(new Date(complaint.created_at), 'MMM d, yyyy')}
                       </TableCell>
+                      {(user?.role === 'admin' || user?.role === 'superadmin') && (
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Update Status</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleUpdateStatus(complaint.id, 'pending')}>
+                                Mark as Pending
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleUpdateStatus(complaint.id, 'in-progress')}>
+                                Mark as In Progress
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleUpdateStatus(complaint.id, 'resolved')}>
+                                Mark as Resolved
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>

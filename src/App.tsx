@@ -12,6 +12,7 @@ import Dashboard from '@/pages/Dashboard';
 import Profile from '@/pages/Profile';
 import Complaints from '@/pages/Complaints';
 import Students from '@/pages/Students';
+import Admins from '@/pages/Admins';
 import Rooms from '@/pages/Rooms';
 import Hostels from '@/pages/Hostels';
 import Settings from '@/pages/Settings';
@@ -56,6 +57,14 @@ export default function App() {
               <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
                 <MainLayout>
                   <Students />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/admins" element={
+              <ProtectedRoute allowedRoles={['superadmin']}>
+                <MainLayout>
+                  <Admins />
                 </MainLayout>
               </ProtectedRoute>
             } />

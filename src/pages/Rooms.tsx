@@ -21,15 +21,25 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Search, Home, Users, Building2, UserPlus, AlertCircle } from 'lucide-react';
+import { Loader2, Search, Home, Users, Building2, UserPlus, AlertCircle, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Rooms: React.FC = () => {
@@ -38,8 +48,17 @@ const Rooms: React.FC = () => {
   const [hostels, setHostels] = useState<Hostel[]>([]);
   const [selectedHostel, setSelectedHostel] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isJoining, setIsJoining] = useState<string | null>(null);
+  const [isBatchDialogOpen, setIsBatchDialogOpen] = useState(false);
+
+  const [batchRooms, setBatchRooms] = useState({
+    hostel_id: '',
+    start_room_number: 1,
+    end_room_number: 10,
+    capacity: 4
+  });
 
   const fetchHostels = async () => {
     try {
@@ -95,6 +114,21 @@ const Rooms: React.FC = () => {
     }
   };
 
+  const handleBatchCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await api.post('/superadmin/rooms/batch', batchRooms);
+      toast.success('Rooms created successfully');
+      setIsBatchDialogOpen(false);
+      fetchRooms();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to create rooms');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const filteredRooms = rooms.filter(room => 
     room.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
     room.hostel_name?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -116,6 +150,80 @@ const Rooms: React.FC = () => {
             Browse and manage hostel rooms and occupancy.
           </p>
         </div>
+        {user?.role === 'superadmin' && (
+          <Dialog open={isBatchDialogOpen} onOpenChange={setIsBatchDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Batch Create
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Batch Create Rooms</DialogTitle>
+                <DialogDescription>
+                  Quickly create multiple rooms for a specific hostel.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleBatchCreate} className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="hostel">Select Hostel</Label>
+                  <Select 
+                    value={batchRooms.hostel_id} 
+                    onValueChange={(val) => setBatchRooms(prev => ({ ...prev, hostel_id: val }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a hostel" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {hostels.map(hostel => (
+                        <SelectItem key={hostel.id} value={hostel.id}>{hostel.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="start">Start Number</Label>
+                    <Input 
+                      id="start" 
+                      type="number" 
+                      value={batchRooms.start_room_number}
+                      onChange={(e) => setBatchRooms(prev => ({ ...prev, start_room_number: parseInt(e.target.value) }))}
+                      required 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="end">End Number</Label>
+                    <Input 
+                      id="end" 
+                      type="number" 
+                      value={batchRooms.end_room_number}
+                      onChange={(e) => setBatchRooms(prev => ({ ...prev, end_room_number: parseInt(e.target.value) }))}
+                      required 
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="capacity">Capacity per Room</Label>
+                  <Input 
+                    id="capacity" 
+                    type="number" 
+                    value={batchRooms.capacity}
+                    onChange={(e) => setBatchRooms(prev => ({ ...prev, capacity: parseInt(e.target.value) }))}
+                    required 
+                  />
+                </div>
+                <DialogFooter>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Create Rooms
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">

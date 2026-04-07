@@ -45,6 +45,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { label: 'Dashboard', icon: LayoutDashboard, path: '/', roles: ['superadmin', 'admin', 'student'] },
     { label: 'Profile', icon: User, path: '/profile', roles: ['superadmin', 'admin', 'student'] },
     { label: 'Complaints', icon: MessageSquare, path: '/complaints', roles: ['superadmin', 'admin', 'student'] },
+    { label: 'Admins', icon: Users, path: '/admins', roles: ['superadmin'] },
     { label: 'Students', icon: Users, path: '/students', roles: ['superadmin', 'admin'] },
     { label: 'Rooms', icon: Home, path: '/rooms', roles: ['superadmin', 'admin', 'student'] },
     { label: 'Hostels', icon: Building2, path: '/hostels', roles: ['superadmin'] },
