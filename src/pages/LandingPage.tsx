@@ -24,6 +24,7 @@ const LandingPage: React.FC = () => {
       navigate('/dashboard');
     }
   }, [user, navigate]);
+  // add
 
   const dashboardLink = user ? "/dashboard" : "/login";
   return (
