@@ -7,6 +7,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from '@/context/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import MainLayout from '@/components/MainLayout';
+import LandingPage from '@/pages/LandingPage';
 import LoginPage from '@/pages/LoginPage';
 import Dashboard from '@/pages/Dashboard';
 import Profile from '@/pages/Profile';
@@ -27,9 +28,10 @@ export default function App() {
       <TooltipProvider>
         <Router>
           <Routes>
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             
-            <Route path="/" element={
+            <Route path="/dashboard" element={
               <ProtectedRoute>
                 <MainLayout>
                   <Dashboard />
@@ -110,7 +112,7 @@ export default function App() {
             } />
 
             {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
           <Toaster position="top-right" />
         </Router>
