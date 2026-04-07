@@ -52,10 +52,7 @@ const Admins: React.FC = () => {
 
   const [newAdmin, setNewAdmin] = useState({
     full_name: '',
-    email: '',
-    password: '',
-    hostel_id: '',
-    gender: 'unspecified'
+    hostel_id: ''
   });
 
   const fetchAdmins = async () => {
@@ -93,10 +90,7 @@ const Admins: React.FC = () => {
       toast.success('Admin added successfully');
       setNewAdmin({
         full_name: '',
-        email: '',
-        password: '',
-        hostel_id: '',
-        gender: 'unspecified'
+        hostel_id: ''
       });
       setIsAddDialogOpen(false);
       fetchAdmins();
@@ -146,26 +140,6 @@ const Admins: React.FC = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  type="email"
-                  value={newAdmin.email}
-                  onChange={(e) => setNewAdmin(prev => ({ ...prev, email: e.target.value }))}
-                  required 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input 
-                  id="password" 
-                  type="password"
-                  value={newAdmin.password}
-                  onChange={(e) => setNewAdmin(prev => ({ ...prev, password: e.target.value }))}
-                  required 
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="hostel">Assign Hostel</Label>
                 <Select 
                   value={newAdmin.hostel_id} 
@@ -178,23 +152,6 @@ const Admins: React.FC = () => {
                     {hostels.map(hostel => (
                       <SelectItem key={hostel.id} value={hostel.id}>{hostel.name}</SelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gender">Gender</Label>
-                <Select 
-                  value={newAdmin.gender} 
-                  onValueChange={(val) => setNewAdmin(prev => ({ ...prev, gender: val }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                    <SelectItem value="unspecified">Unspecified</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

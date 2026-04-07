@@ -68,12 +68,8 @@ const Complaints: React.FC = () => {
       let endpoint = '';
       if (user?.role === 'superadmin') endpoint = '/superadmin/complaints';
       else if (user?.role === 'admin') endpoint = '/admins/complaints';
-      else if (user?.role === 'student') endpoint = '/admins/complaints'; // Students see their hostel's complaints or we filter? API says admins/complaints for admin's hostel
+      else if (user?.role === 'student') endpoint = '/admins/complaints'; // Fallback to admins/complaints if student can see them
 
-      // Actually for student, they might only see their own or hostel's. 
-      // The API.json shows /admins/complaints for admin's hostel.
-      // Let's assume students can see their hostel's complaints too if they use the same endpoint.
-      
       const response = await api.get(endpoint || '/admins/complaints');
       setComplaints(response.data);
     } catch (error) {
@@ -104,17 +100,8 @@ const Complaints: React.FC = () => {
     }
   };
 
-  const handleUpdateStatus = async (complaintId: string, status: string) => {
-    try {
-      await api.put(`/admins/complaints/${complaintId}/status`, { status });
-      toast.success(`Status updated to ${status}`);
-      fetchComplaints();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to update status');
-    }
-  };
-
   const getStatusBadge = (status: string) => {
+    if (!status) return null;
     switch (status.toLowerCase()) {
       case 'pending':
         return <Badge variant="outline" className="text-orange-500 border-orange-500"><Clock className="h-3 w-3 mr-1" /> Pending</Badge>;
@@ -211,7 +198,6 @@ const Complaints: React.FC = () => {
                     <TableHead>Hostel</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Date</TableHead>
-                    {(user?.role === 'admin' || user?.role === 'superadmin') && <TableHead className="text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -222,32 +208,8 @@ const Complaints: React.FC = () => {
                       <TableCell>{complaint.hostel_name || 'Unknown'}</TableCell>
                       <TableCell>{getStatusBadge(complaint.status)}</TableCell>
                       <TableCell className="text-muted-foreground">
-                        {format(new Date(complaint.created_at), 'MMM d, yyyy')}
+                        {complaint.created_at ? format(new Date(complaint.created_at), 'MMM d, yyyy') : 'N/A'}
                       </TableCell>
-                      {(user?.role === 'admin' || user?.role === 'superadmin') && (
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Update Status</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => handleUpdateStatus(complaint.id, 'pending')}>
-                                Mark as Pending
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUpdateStatus(complaint.id, 'in-progress')}>
-                                Mark as In Progress
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUpdateStatus(complaint.id, 'resolved')}>
-                                Mark as Resolved
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      )}
                     </TableRow>
                   ))}
                 </TableBody>
