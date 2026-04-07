@@ -1,0 +1,228 @@
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import api from '@/lib/api';
+import { RoomResponse, Hostel } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle,
+  CardFooter
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Loader2, Search, Home, Users, Building2, UserPlus, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
+
+const Rooms: React.FC = () => {
+  const { user } = useAuth();
+  const [rooms, setRooms] = useState<RoomResponse[]>([]);
+  const [hostels, setHostels] = useState<Hostel[]>([]);
+  const [selectedHostel, setSelectedHostel] = useState<string>('all');
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isJoining, setIsJoining] = useState<string | null>(null);
+
+  const fetchHostels = async () => {
+    try {
+      const response = await api.get('/superadmin/hostels');
+      setHostels(response.data);
+    } catch (error) {
+      console.error('Failed to fetch hostels', error);
+    }
+  };
+
+  const fetchRooms = async () => {
+    setIsLoading(true);
+    try {
+      let endpoint = '';
+      if (user?.role === 'superadmin') endpoint = '/superadmin/rooms';
+      else if (user?.role === 'admin') endpoint = '/admins/rooms';
+      else if (user?.role === 'student') {
+        if (selectedHostel === 'all') {
+          // If student hasn't selected a hostel, maybe show their own or list all available
+          endpoint = user.hostel_id ? `/students/hostels/${user.hostel_id}/rooms` : '/superadmin/rooms';
+        } else {
+          endpoint = `/students/hostels/${selectedHostel}/rooms`;
+        }
+      }
+
+      const response = await api.get(endpoint);
+      setRooms(response.data);
+    } catch (error) {
+      console.error('Failed to fetch rooms', error);
+      toast.error('Failed to load rooms');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.role === 'superadmin' || user?.role === 'student') {
+      fetchHostels();
+    }
+    fetchRooms();
+  }, [user, selectedHostel]);
+
+  const handleJoinRoom = async (roomId: string) => {
+    setIsJoining(roomId);
+    try {
+      await api.post(`/students/rooms/${roomId}/join`);
+      toast.success('Successfully joined the room');
+      fetchRooms();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to join room');
+    } finally {
+      setIsJoining(null);
+    }
+  };
+
+  const filteredRooms = rooms.filter(room => 
+    room.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    room.hostel_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const getOccupancyColor = (occupancy: number, capacity: number) => {
+    const ratio = occupancy / capacity;
+    if (ratio >= 1) return 'bg-destructive';
+    if (ratio >= 0.75) return 'bg-orange-500';
+    return 'bg-green-500';
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Rooms</h2>
+          <p className="text-muted-foreground">
+            Browse and manage hostel rooms and occupancy.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search by room number or hostel..."
+            className="pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        {(user?.role === 'superadmin' || user?.role === 'student') && (
+          <div className="w-full md:w-64">
+            <Select value={selectedHostel} onValueChange={setSelectedHostel}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by Hostel" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Hostels</SelectItem>
+                {hostels.map((hostel) => (
+                  <SelectItem key={hostel.id} value={hostel.id}>{hostel.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : filteredRooms.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <Home className="h-12 w-12 mx-auto mb-4 opacity-20" />
+          <p>No rooms found.</p>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredRooms.map((room) => (
+            <Card key={room.id} className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <Home className="h-5 w-5 text-primary" />
+                      Room {room.number}
+                    </CardTitle>
+                    <CardDescription className="flex items-center gap-1">
+                      <Building2 className="h-3 w-3" />
+                      {room.hostel_name}
+                    </CardDescription>
+                  </div>
+                  <Badge variant={room.gender === 'male' ? 'default' : 'secondary'} className="capitalize">
+                    {room.gender}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Occupancy</span>
+                    <span className="font-medium">{room.occupancy} / {room.capacity}</span>
+                  </div>
+                  <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full ${getOccupancyColor(room.occupancy, room.capacity)} transition-all`} 
+                      style={{ width: `${(room.occupancy / room.capacity) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                
+                {room.students && room.students.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase text-muted-foreground">Current Residents</p>
+                    <div className="flex flex-wrap gap-2">
+                      {room.students.map((student) => (
+                        <Badge key={student.id} variant="outline" className="text-[10px]">
+                          {student.full_name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter className="bg-muted/50 border-t p-4">
+                {user?.role === 'student' ? (
+                  <Button 
+                    className="w-full" 
+                    disabled={room.occupancy >= room.capacity || isJoining === room.id || user.room_id === room.id}
+                    onClick={() => handleJoinRoom(room.id)}
+                  >
+                    {isJoining === room.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                    {user.room_id === room.id ? 'Current Room' : room.occupancy >= room.capacity ? 'Room Full' : 'Join Room'}
+                  </Button>
+                ) : (
+                  <Button variant="outline" className="w-full">Manage Room</Button>
+                )}
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Rooms;
