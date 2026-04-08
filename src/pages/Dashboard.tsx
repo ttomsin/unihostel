@@ -11,7 +11,8 @@ import {
   Clock, 
   AlertCircle,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  GraduationCap
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -231,8 +232,8 @@ const Dashboard: React.FC = () => {
             <Home className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.room_number || 'Not Assigned'}</div>
-            <p className="text-xs text-muted-foreground">{stats?.hostel_name || 'N/A'}</p>
+            <div className="text-2xl font-bold">{stats?.profile?.room_id ? `Room ID: ${stats.profile.room_id}` : 'Not Assigned'}</div>
+            <p className="text-xs text-muted-foreground">Hostel ID: {stats?.profile?.hostel_id || 'N/A'}</p>
           </CardContent>
         </Card>
         <Card>
@@ -241,25 +242,25 @@ const Dashboard: React.FC = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.roommates_count || 0}</div>
+            <div className="text-2xl font-bold">{stats?.roommates || 0}</div>
             <p className="text-xs text-muted-foreground">In your current room</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">My Complaints</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">My Level</CardTitle>
+            <GraduationCap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.complaints_count || 0}</div>
-            <p className="text-xs text-muted-foreground">{stats?.pending_complaints || 0} pending</p>
+            <div className="text-2xl font-bold">{stats?.profile?.level || 'N/A'}</div>
+            <p className="text-xs text-muted-foreground">Academic progress</p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Welcome back, {user?.full_name}!</CardTitle>
+          <CardTitle>Welcome back, {stats?.profile?.full_name || user?.full_name}!</CardTitle>
           <CardDescription>Here's a quick overview of your hostel status.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -269,24 +270,28 @@ const Dashboard: React.FC = () => {
               Important Notices
             </h3>
             <p className="text-sm text-muted-foreground">
-              {stats?.notices?.[0] || 'No new notices at this time. Have a great day!'}
+              Welcome to the Student Hostel Management System. Please ensure your profile is up to date.
             </p>
           </div>
           
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <h4 className="text-sm font-medium">Hostel Details</h4>
+              <h4 className="text-sm font-medium">Profile Details</h4>
               <ul className="text-sm space-y-1 text-muted-foreground">
-                <li>Hostel: {stats?.hostel_name || 'N/A'}</li>
-                <li>Room Number: {stats?.room_number || 'N/A'}</li>
-                <li>Faculty: {user?.faculty_id ? 'Assigned' : 'Not Assigned'}</li>
+                <li>Matric Number: {stats?.profile?.matric_number || 'N/A'}</li>
+                <li>Email: {stats?.profile?.email || 'N/A'}</li>
+                <li>Gender: {stats?.profile?.gender || 'N/A'}</li>
               </ul>
             </div>
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Quick Actions</h4>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm">Report Issue</Button>
-                <Button variant="outline" size="sm">View Roommates</Button>
+                <Button variant="outline" size="sm" asChild>
+                  <a href="/complaints">Report Issue</a>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <a href="/rooms">Browse Rooms</a>
+                </Button>
               </div>
             </div>
           </div>

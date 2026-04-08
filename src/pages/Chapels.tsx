@@ -76,6 +76,25 @@ const Chapels: React.FC = () => {
     }
   };
 
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingChapel, setEditingChapel] = useState<Chapel | null>(null);
+
+  const handleUpdateChapel = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingChapel) return;
+    setIsSubmitting(true);
+    try {
+      await api.patch(`/superadmin/chapels/${editingChapel.id}`, { name: editingChapel.name });
+      toast.success('Chapel updated successfully');
+      setIsEditDialogOpen(false);
+      fetchChapels();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to update chapel');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -121,6 +140,36 @@ const Chapels: React.FC = () => {
         </Dialog>
       </div>
 
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Chapel</DialogTitle>
+            <DialogDescription>
+              Update the name of the chapel.
+            </DialogDescription>
+          </DialogHeader>
+          {editingChapel && (
+            <form onSubmit={handleUpdateChapel} className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit_name">Chapel Name</Label>
+                <Input 
+                  id="edit_name" 
+                  value={editingChapel.name}
+                  onChange={(e) => setEditingChapel({ ...editingChapel, name: e.target.value })}
+                  required 
+                />
+              </div>
+              <DialogFooter>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Update Chapel
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <Card>
         <CardHeader>
           <CardTitle>Chapel Directory</CardTitle>
@@ -152,7 +201,16 @@ const Chapels: React.FC = () => {
                     <TableRow key={chapel.id}>
                       <TableCell className="font-medium">{chapel.name}</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">Edit</Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            setEditingChapel(chapel);
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

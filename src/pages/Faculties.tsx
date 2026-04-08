@@ -95,6 +95,28 @@ const Faculties: React.FC = () => {
     }
   };
 
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingFaculty, setEditingFaculty] = useState<FacultyResponse | null>(null);
+
+  const handleUpdateFaculty = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingFaculty) return;
+    setIsSubmitting(true);
+    try {
+      await api.patch(`/superadmin/faculties/${editingFaculty.id}`, { 
+        name: editingFaculty.name,
+        hostel_id: editingFaculty.hostel_id
+      });
+      toast.success('Faculty updated successfully');
+      setIsEditDialogOpen(false);
+      fetchFaculties();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to update faculty');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -156,6 +178,52 @@ const Faculties: React.FC = () => {
         </Dialog>
       </div>
 
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Faculty</DialogTitle>
+            <DialogDescription>
+              Update faculty name and hostel assignment.
+            </DialogDescription>
+          </DialogHeader>
+          {editingFaculty && (
+            <form onSubmit={handleUpdateFaculty} className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit_name">Faculty Name</Label>
+                <Input 
+                  id="edit_name" 
+                  value={editingFaculty.name}
+                  onChange={(e) => setEditingFaculty({ ...editingFaculty, name: e.target.value })}
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_hostel">Assign Hostel</Label>
+                <Select 
+                  value={editingFaculty.hostel_id} 
+                  onValueChange={(val) => setEditingFaculty({ ...editingFaculty, hostel_id: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a hostel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {hostels.map(hostel => (
+                      <SelectItem key={hostel.id} value={hostel.id}>{hostel.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <DialogFooter>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Update Faculty
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <Card>
         <CardHeader>
           <CardTitle>Faculty Directory</CardTitle>
@@ -194,7 +262,16 @@ const Faculties: React.FC = () => {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">Edit</Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            setEditingFaculty(faculty);
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
