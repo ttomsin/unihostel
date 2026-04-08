@@ -52,7 +52,8 @@ const Admins: React.FC = () => {
 
   const [newAdmin, setNewAdmin] = useState({
     full_name: '',
-    hostel_id: ''
+    hostel_id: '',
+    password: ''
   });
 
   const fetchAdmins = async () => {
@@ -90,7 +91,8 @@ const Admins: React.FC = () => {
       toast.success('Admin added successfully');
       setNewAdmin({
         full_name: '',
-        hostel_id: ''
+        hostel_id: '',
+        password: ''
       });
       setIsAddDialogOpen(false);
       fetchAdmins();
@@ -136,6 +138,17 @@ const Admins: React.FC = () => {
                   id="full_name" 
                   value={newAdmin.full_name}
                   onChange={(e) => setNewAdmin(prev => ({ ...prev, full_name: e.target.value }))}
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input 
+                  id="password" 
+                  type="password"
+                  placeholder="Enter admin's password" 
+                  value={newAdmin.password}
+                  onChange={(e) => setNewAdmin(prev => ({ ...prev, password: e.target.value }))}
                   required 
                 />
               </div>

@@ -42,11 +42,14 @@ import { Progress } from '@/components/ui/progress';
 import { Loader2, Search, Home, Users, Building2, UserPlus, AlertCircle, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useSearchParams } from 'react-router-dom';
+
 const Rooms: React.FC = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [rooms, setRooms] = useState<RoomResponse[]>([]);
   const [hostels, setHostels] = useState<Hostel[]>([]);
-  const [selectedHostel, setSelectedHostel] = useState<string>('all');
+  const [selectedHostel, setSelectedHostel] = useState<string>(searchParams.get('hostel') || 'all');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -125,6 +128,28 @@ const Rooms: React.FC = () => {
       fetchRooms();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to create rooms');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingRoom, setEditingRoom] = useState<RoomResponse | null>(null);
+
+  const handleEditRoom = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingRoom) return;
+    setIsSubmitting(true);
+    try {
+      await api.patch(`/superadmin/rooms/${editingRoom.id}`, {
+        capacity: editingRoom.capacity,
+        gender: editingRoom.gender
+      });
+      toast.success('Room updated successfully');
+      setIsEditDialogOpen(false);
+      fetchRooms();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to update room');
     } finally {
       setIsSubmitting(false);
     }
@@ -252,6 +277,52 @@ const Rooms: React.FC = () => {
         )}
       </div>
 
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Room {editingRoom?.number}</DialogTitle>
+            <DialogDescription>
+              Update room capacity and gender assignment.
+            </DialogDescription>
+          </DialogHeader>
+          {editingRoom && (
+            <form onSubmit={handleEditRoom} className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit_capacity">Capacity</Label>
+                <Input 
+                  id="edit_capacity" 
+                  type="number" 
+                  value={editingRoom.capacity}
+                  onChange={(e) => setEditingRoom(prev => prev ? ({ ...prev, capacity: parseInt(e.target.value) }) : null)}
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_gender">Gender</Label>
+                <Select 
+                  value={editingRoom.gender} 
+                  onValueChange={(val) => setEditingRoom(prev => prev ? ({ ...prev, gender: val as any }) : null)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <DialogFooter>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Update Room
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -348,7 +419,16 @@ const Rooms: React.FC = () => {
                     {user.room_id === room.id ? 'Current Room' : room.occupancy >= room.capacity ? 'Room Full' : 'Join Room'}
                   </Button>
                 ) : (
-                  <Button variant="outline" className="w-full">Manage Room</Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      setEditingRoom(room);
+                      setIsEditDialogOpen(true);
+                    }}
+                  >
+                    Manage Room
+                  </Button>
                 )}
               </CardFooter>
             </Card>

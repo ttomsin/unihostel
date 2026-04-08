@@ -67,6 +67,25 @@ const Hostels: React.FC = () => {
     }
   };
 
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingHostel, setEditingHostel] = useState<Hostel | null>(null);
+
+  const handleUpdateHostel = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingHostel) return;
+    setIsSubmitting(true);
+    try {
+      await api.patch(`/superadmin/hostels/${editingHostel.id}`, { name: editingHostel.name });
+      toast.success('Hostel updated successfully');
+      setIsEditDialogOpen(false);
+      fetchHostels();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to update hostel');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -112,6 +131,36 @@ const Hostels: React.FC = () => {
         </Dialog>
       </div>
 
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Hostel</DialogTitle>
+            <DialogDescription>
+              Update the name of the hostel building.
+            </DialogDescription>
+          </DialogHeader>
+          {editingHostel && (
+            <form onSubmit={handleUpdateHostel} className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit_name">Hostel Name</Label>
+                <Input 
+                  id="edit_name" 
+                  value={editingHostel.name}
+                  onChange={(e) => setEditingHostel({ ...editingHostel, name: e.target.value })}
+                  required 
+                />
+              </div>
+              <DialogFooter>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Update Hostel
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {isLoading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -136,7 +185,14 @@ const Hostels: React.FC = () => {
                       ID: {hostel.id.substring(0, 8)}...
                     </CardDescription>
                   </div>
-                  <Button variant="ghost" size="icon">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => {
+                      setEditingHostel(hostel);
+                      setIsEditDialogOpen(true);
+                    }}
+                  >
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </div>
@@ -152,8 +208,9 @@ const Hostels: React.FC = () => {
                 </div>
               </CardContent>
               <CardFooter className="bg-muted/50 border-t p-4 flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1">View Details</Button>
-                <Button variant="outline" size="sm" className="flex-1">Manage Rooms</Button>
+                <Button variant="outline" size="sm" className="flex-1" asChild>
+                  <a href={`/rooms?hostel=${hostel.id}`}>Manage Rooms</a>
+                </Button>
               </CardFooter>
             </Card>
           ))}

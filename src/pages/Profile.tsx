@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, Save, User as UserIcon, Phone, Mail, Hash, GraduationCap, Building2, Home } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, Save, User as UserIcon, Phone, Mail, Hash, GraduationCap, Building2, Home, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Profile: React.FC = () => {
@@ -21,6 +22,8 @@ const Profile: React.FC = () => {
     full_name: '',
     phone: '',
     email: '',
+    gender: 'unspecified',
+    password: '',
   });
 
   useEffect(() => {
@@ -32,6 +35,8 @@ const Profile: React.FC = () => {
           full_name: response.data.full_name,
           phone: response.data.phone || '',
           email: response.data.email,
+          gender: response.data.gender || 'unspecified',
+          password: '',
         });
       } catch (error) {
         console.error('Failed to fetch profile', error);
@@ -49,6 +54,8 @@ const Profile: React.FC = () => {
         full_name: user?.full_name || '',
         phone: user?.phone || '',
         email: user?.email || '',
+        gender: user?.gender || 'unspecified',
+        password: '',
       });
       setIsLoading(false);
     }
@@ -63,11 +70,16 @@ const Profile: React.FC = () => {
     e.preventDefault();
     setIsSaving(true);
     try {
-      const endpoint = user?.role === 'student' ? '/students/me' : '/students/me'; // Assuming same for now or handle differently
-      const response = await api.patch(endpoint, formData);
+      const payload = { ...formData };
+      if (!payload.password) {
+        delete (payload as any).password;
+      }
+      const endpoint = user?.role === 'student' ? '/students/me' : '/students/me'; 
+      const response = await api.patch(endpoint, payload);
       setProfile(response.data);
       login({ token: localStorage.getItem('token') || '', user: response.data });
       toast.success('Profile updated successfully');
+      setFormData(prev => ({ ...prev, password: '' })); // Clear password field
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to update profile');
     } finally {
@@ -173,6 +185,33 @@ const Profile: React.FC = () => {
                   id="phone" 
                   name="phone"
                   value={formData.phone}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="gender">Gender</Label>
+                <Select 
+                  value={formData.gender} 
+                  onValueChange={(val) => setFormData(prev => ({ ...prev, gender: val }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="unspecified">Unspecified</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="password">New Password (leave blank to keep current)</Label>
+                <Input 
+                  id="password" 
+                  name="password"
+                  type="password"
+                  value={formData.password}
                   onChange={handleInputChange}
                 />
               </div>
