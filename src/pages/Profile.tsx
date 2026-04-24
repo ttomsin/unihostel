@@ -217,7 +217,6 @@ const Profile: React.FC = () => {
                   value={formData.email || ''}
                   onChange={handleInputChange}
                   required 
-                  disabled
                 />
               </div>
               <div className="grid gap-2">
