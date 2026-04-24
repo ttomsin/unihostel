@@ -106,7 +106,7 @@ const Rooms: React.FC = () => {
   };
 
   useEffect(() => {
-    if (user?.role === 'superadmin' || user?.role === 'student') {
+    if (user?.role === 'superadmin') {
       fetchHostels();
     }
     fetchRooms();
@@ -341,7 +341,7 @@ const Rooms: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        {(user?.role === 'superadmin' || user?.role === 'student') && (
+        {user?.role === 'superadmin' && (
           <div className="w-full md:w-64">
             <Select value={selectedHostel} onValueChange={setSelectedHostel}>
               <SelectTrigger>
