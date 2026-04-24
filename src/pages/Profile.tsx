@@ -17,6 +17,7 @@ const Profile: React.FC = () => {
   const { user, login } = useAuth();
   const [profile, setProfile] = useState<User | null>(null);
   const [chapels, setChapels] = useState<Chapel[]>([]);
+  const [faculties, setFaculties] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,17 +27,20 @@ const Profile: React.FC = () => {
     gender: 'unspecified',
     password: '',
     chapel_id: '',
+    faculty_id: '',
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [profileRes, chapelsRes] = await Promise.all([
+        const [profileRes, chapelsRes, facultiesRes] = await Promise.all([
           api.get('/students/me'),
-          api.get('/common/chapels')
+          api.get('/common/chapels'),
+          api.get('/common/faculties')
         ]);
         setProfile(profileRes.data);
         setChapels(chapelsRes.data);
+        setFaculties(facultiesRes.data);
         setFormData({
           full_name: profileRes.data.full_name || '',
           phone: profileRes.data.phone || '',
@@ -44,6 +48,7 @@ const Profile: React.FC = () => {
           gender: profileRes.data.gender || 'unspecified',
           password: '',
           chapel_id: profileRes.data.chapel_id || '',
+          faculty_id: profileRes.data.faculty_id || '',
         });
       } catch (error) {
         console.error('Failed to fetch profile settings', error);
@@ -64,6 +69,7 @@ const Profile: React.FC = () => {
         gender: user?.gender || 'unspecified',
         password: '',
         chapel_id: user?.chapel_id || '',
+        faculty_id: user?.faculty_id || '',
       });
       setIsLoading(false);
     }
@@ -93,6 +99,10 @@ const Profile: React.FC = () => {
         delete payload.phone;
       }
 
+      if (!payload.faculty_id) {
+        delete payload.faculty_id;
+      }
+
       const endpoint = user?.role === 'student' ? '/students/me' : '/students/me'; 
       const response = await api.patch(endpoint, payload);
       setProfile(response.data);
@@ -104,6 +114,7 @@ const Profile: React.FC = () => {
         phone: response.data.phone || '', 
         gender: response.data.gender || 'unspecified',
         chapel_id: response.data.chapel_id || '',
+        faculty_id: response.data.faculty_id || '',
       }));
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to update profile');
@@ -161,16 +172,20 @@ const Profile: React.FC = () => {
                 <GraduationCap className="h-4 w-4 text-muted-foreground" />
                 <span>Level {profile?.level || 'N/A'}</span>
               </div>
+              <div className="flex items-center gap-3 text-sm">
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+                <span>Faculty: {profile?.faculty_name || 'Not assigned'}</span>
+              </div>
             </div>
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase text-muted-foreground">Hostel Info</p>
               <div className="flex items-center gap-3 text-sm">
                 <Building2 className="h-4 w-4 text-muted-foreground" />
-                <span>Hostel ID: {profile?.hostel_id || 'Not assigned'}</span>
+                <span>Hostel: {profile?.hostel_name || 'Not assigned'}</span>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <Home className="h-4 w-4 text-muted-foreground" />
-                <span>Room ID: {profile?.room_id || 'Not assigned'}</span>
+                <span>Room: {profile?.room_number || 'Not assigned'}</span>
               </div>
             </div>
           </CardContent>
@@ -248,6 +263,22 @@ const Profile: React.FC = () => {
                 </Select>
               </div>
               <div className="grid gap-2">
+                <Label htmlFor="faculty">Faculty</Label>
+                <Select 
+                  value={formData.faculty_id || ''} 
+                  onValueChange={(val) => setFormData(prev => ({ ...prev, faculty_id: val }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select faculty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {faculties.map(faculty => (
+                      <SelectItem key={faculty.id} value={faculty.id}>{faculty.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
                 <Label htmlFor="password">New Password (leave blank to keep current)</Label>
                 <Input 
                   id="password" 
@@ -257,9 +288,10 @@ const Profile: React.FC = () => {
                   onChange={handleInputChange}
                 />
               </div>
-              <div className="rounded-lg bg-muted p-4 text-xs text-muted-foreground">
-                <p>Note: Academic information and hostel assignments can only be changed by a superadmin.</p>
-                <p className="mt-1">Profile edits remaining: {profile?.edit_count || 0}</p>
+              <div className="rounded-lg bg-muted p-4 text-xs text-muted-foreground border border-amber-200/50 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-900/10">
+                <p className="font-semibold text-amber-800 dark:text-amber-500 mb-1">Important Notice</p>
+                <p>Changing your faculty will automatically update your hostel assignment and remove you from any previously assigned room.</p>
+                <p className="mt-2 text-primary/80">Profile edits remaining: {profile?.edit_count || 0}</p>
               </div>
             </CardContent>
             <CardFooter>
