@@ -34,7 +34,7 @@ const Profile: React.FC = () => {
     const fetchData = async () => {
       try {
         const [profileRes, chapelsRes, facultiesRes] = await Promise.all([
-          api.get('/students/me'),
+          api.get(user?.role === 'admin' ? '/admins/me' : '/students/me'),
           api.get('/common/chapels'),
           api.get('/common/faculties')
         ]);
@@ -58,7 +58,7 @@ const Profile: React.FC = () => {
       }
     };
 
-    if (user?.role === 'student') {
+    if (user?.role === 'student' || user?.role === 'admin') {
       fetchData();
     } else {
       setProfile(user);
@@ -82,8 +82,8 @@ const Profile: React.FC = () => {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (user?.role !== 'student') {
-      toast.info('Profile editing is only supported for students');
+    if (user?.role !== 'student' && user?.role !== 'admin') {
+      toast.info('Profile editing is not supported for your role');
       return;
     }
     setIsSaving(true);
@@ -103,7 +103,7 @@ const Profile: React.FC = () => {
         delete payload.faculty_id;
       }
 
-      const endpoint = user?.role === 'student' ? '/students/me' : '/students/me'; 
+      const endpoint = user?.role === 'admin' ? '/admins/me' : '/students/me'; 
       const response = await api.patch(endpoint, payload);
       setProfile(response.data);
       login({ token: localStorage.getItem('token') || '', user: response.data });
@@ -287,14 +287,16 @@ const Profile: React.FC = () => {
                   onChange={handleInputChange}
                 />
               </div>
-              <div className="rounded-lg bg-muted p-4 text-xs text-muted-foreground border border-amber-200/50 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-900/10">
-                <p className="font-semibold text-amber-800 dark:text-amber-500 mb-1">Important Notice</p>
-                <p>Changing your faculty will automatically update your hostel assignment and remove you from any previously assigned room.</p>
-                <p className="mt-2 text-primary/80">Profile edits remaining: {profile?.edit_count || 0}</p>
-              </div>
+              {user?.role === 'student' && (
+                <div className="rounded-lg bg-muted p-4 text-xs text-muted-foreground border border-amber-200/50 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-900/10">
+                  <p className="font-semibold text-amber-800 dark:text-amber-500 mb-1">Important Notice</p>
+                  <p>Changing your faculty will automatically update your hostel assignment and remove you from any previously assigned room.</p>
+                  <p className="mt-2 text-primary/80">Profile edits remaining: {profile?.edit_count || 0}</p>
+                </div>
+              )}
             </CardContent>
             <CardFooter>
-              <Button type="submit" className="ml-auto" disabled={isSaving || (profile?.edit_count === 0 && user?.role === 'student')}>
+              <Button type="submit" className="ml-auto" disabled={isSaving || (user?.role === 'student' && profile?.edit_count === 0)}>
                 {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 Save Changes
               </Button>

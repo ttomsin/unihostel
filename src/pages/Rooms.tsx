@@ -143,6 +143,53 @@ const Rooms: React.FC = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<RoomResponse | null>(null);
 
+  const [isViewStudentsDialogOpen, setIsViewStudentsDialogOpen] = useState(false);
+  const [viewingRoomId, setViewingRoomId] = useState<string | null>(null);
+  const [roomStudents, setRoomStudents] = useState<any[]>([]);
+  const [isLoadingStudents, setIsLoadingStudents] = useState(false);
+
+  const fetchRoomStudents = async (roomId: string) => {
+    setIsLoadingStudents(true);
+    setRoomStudents([]);
+    try {
+      const endpoint = user?.role === 'superadmin' ? `/superadmin/rooms/${roomId}` : `/admins/rooms/${roomId}/students`;
+      const response = await api.get(endpoint);
+      // Ensure we set an array. If the superadmin endpoint returns a single room object instead of a list of students,
+      // we might need to extract the students array. According to typical pattern /admins/rooms/{room_id}/students returns students list.
+      // Assuming it returns an array of students.
+      setRoomStudents(Array.isArray(response.data) ? response.data : response.data.students || []);
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to fetch students in room');
+    } finally {
+      setIsLoadingStudents(false);
+    }
+  };
+
+  const handleRemoveStudentFromRoom = async (studentId: string) => {
+    try {
+      // both superadmin and admin might use this or they have different endpoints. Let's use the admin one as user mentioned.
+      // or /superadmin/students/{student_id}/remove-room if superadmin. We will use /students/... ? User said "an endpont for admin to fetch students in a room"
+      // Wait, user provided paths: /admins/students/{student_id}/remove-room
+      // What about superadmin? Let's use /admins/students if they are admin, else... Wait, if superadmin also wants to do it, we'll try `/superadmin/students/${studentId}`? Wait, we can just use `/admins/students/${studentId}/remove-room` for both?
+      // Wait, let's look at the earlier paths: "/superadmin/students/{student_id}/remove-room" is not in there. 
+      // But maybe it's common? Let's try /admins/students/${studentId}/remove-room for admin, but for superadmin it's just /superadmin/students patch? Let's use /admins/... for admin. 
+      // User specific requested: `/admins/students/{student_id}/remove-room`
+      const endpoint = user?.role === 'superadmin' ? `/superadmin/students/${studentId}` : `/admins/students/${studentId}/remove-room`;
+      
+      if (user?.role === 'superadmin') {
+         await api.patch(endpoint, { room_id: null });
+      } else {
+         await api.patch(endpoint);
+      }
+      
+      toast.success('Student removed from room');
+      if (viewingRoomId) fetchRoomStudents(viewingRoomId);
+      fetchRooms();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to remove student');
+    }
+  };
+
   const handleEditRoom = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingRoom) return;
@@ -330,6 +377,72 @@ const Rooms: React.FC = () => {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={isViewStudentsDialogOpen} onOpenChange={(open) => {
+        setIsViewStudentsDialogOpen(open);
+        if (!open) {
+          setViewingRoomId(null);
+          setRoomStudents([]);
+        }
+      }}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Room Students</DialogTitle>
+            <DialogDescription>
+              View and manage students in this room.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {isLoadingStudents ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : roomStudents.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                <p>No students currently assigned to this room.</p>
+              </div>
+            ) : (
+              <div className="border rounded-md overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Matric No.</TableHead>
+                      <TableHead>Level</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {roomStudents.map((student) => (
+                      <TableRow key={student.id}>
+                        <TableCell className="font-medium">{student.full_name}</TableCell>
+                        <TableCell>{student.email}</TableCell>
+                        <TableCell className="uppercase">{student.matric_number}</TableCell>
+                        <TableCell>{student.level}</TableCell>
+                        <TableCell className="text-right">
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => {
+                              if (confirm('Are you sure you want to remove this student from the room?')) {
+                                handleRemoveStudentFromRoom(student.id);
+                              }
+                            }}
+                          >
+                            Remove
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -426,16 +539,32 @@ const Rooms: React.FC = () => {
                     {user.room_id === room.id ? 'Current Room' : room.occupancy >= room.capacity ? 'Room Full' : 'Join Room'}
                   </Button>
                 ) : (
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => {
-                      setEditingRoom(room);
-                      setIsEditDialogOpen(true);
-                    }}
-                  >
-                    Manage Room
-                  </Button>
+                  <div className="flex gap-2 w-full">
+                    {user?.role === 'superadmin' && (
+                      <Button 
+                        variant="outline" 
+                        className="flex-1"
+                        onClick={() => {
+                          setEditingRoom(room);
+                          setIsEditDialogOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => {
+                        setViewingRoomId(room.id);
+                        setIsViewStudentsDialogOpen(true);
+                        fetchRoomStudents(room.id);
+                      }}
+                    >
+                      <Users className="mr-2 h-4 w-4" />
+                      Students
+                    </Button>
+                  </div>
                 )}
               </CardFooter>
             </Card>
