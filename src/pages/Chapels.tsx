@@ -46,7 +46,7 @@ const Chapels: React.FC = () => {
   const fetchChapels = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get('/superadmin/chapels');
+      const response = await api.get('/common/chapels');
       setChapels(response.data);
     } catch (error) {
       console.error('Failed to fetch chapels', error);

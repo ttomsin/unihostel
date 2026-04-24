@@ -55,7 +55,7 @@ const Faculties: React.FC = () => {
   const fetchFaculties = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get('/superadmin/faculties');
+      const response = await api.get('/common/faculties');
       setFaculties(response.data);
     } catch (error) {
       console.error('Failed to fetch faculties', error);
@@ -67,7 +67,7 @@ const Faculties: React.FC = () => {
 
   const fetchHostels = async () => {
     try {
-      const response = await api.get('/superadmin/hostels');
+      const response = await api.get('/common/hostels');
       setHostels(response.data);
     } catch (error) {
       console.error('Failed to fetch hostels', error);

@@ -33,7 +33,7 @@ const Profile: React.FC = () => {
       try {
         const [profileRes, chapelsRes] = await Promise.all([
           api.get('/students/me'),
-          api.get('/students/chapels')
+          api.get('/common/chapels')
         ]);
         setProfile(profileRes.data);
         setChapels(chapelsRes.data);

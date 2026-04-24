@@ -67,7 +67,7 @@ const Rooms: React.FC = () => {
 
   const fetchHostels = async () => {
     try {
-      const response = await api.get('/superadmin/hostels');
+      const response = await api.get('/common/hostels');
       setHostels(response.data);
     } catch (error) {
       console.error('Failed to fetch hostels', error);
@@ -82,10 +82,17 @@ const Rooms: React.FC = () => {
       else if (user?.role === 'admin') endpoint = '/admins/rooms';
       else if (user?.role === 'student') {
         if (selectedHostel === 'all') {
-          endpoint = user.hostel_id ? `/students/hostels/${user.hostel_id}/rooms` : '/students/rooms';
+          endpoint = user.hostel_id ? `/common/hostels/${user.hostel_id}/rooms` : '';
         } else {
-          endpoint = `/students/hostels/${selectedHostel}/rooms`;
+          endpoint = `/common/hostels/${selectedHostel}/rooms`;
         }
+      }
+
+      if (!endpoint && user?.role === 'student') {
+        // If student has no hostel assigned and 'all' is selected, maybe return empty list
+        setRooms([]);
+        setIsLoading(false);
+        return;
       }
 
       const response = await api.get(endpoint);

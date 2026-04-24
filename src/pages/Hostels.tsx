@@ -37,7 +37,7 @@ const Hostels: React.FC = () => {
   const fetchHostels = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get('/superadmin/hostels');
+      const response = await api.get('/common/hostels');
       setHostels(response.data);
     } catch (error) {
       console.error('Failed to fetch hostels', error);
