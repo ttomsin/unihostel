@@ -38,9 +38,9 @@ const Profile: React.FC = () => {
         setProfile(profileRes.data);
         setChapels(chapelsRes.data);
         setFormData({
-          full_name: profileRes.data.full_name,
+          full_name: profileRes.data.full_name || '',
           phone: profileRes.data.phone || '',
-          email: profileRes.data.email,
+          email: profileRes.data.email || '',
           gender: profileRes.data.gender || 'unspecified',
           password: '',
           chapel_id: profileRes.data.chapel_id || '',
@@ -76,6 +76,10 @@ const Profile: React.FC = () => {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (user?.role !== 'student') {
+      toast.info('Profile editing is only supported for students');
+      return;
+    }
     setIsSaving(true);
     try {
       const payload: any = { ...formData };
@@ -184,7 +188,7 @@ const Profile: React.FC = () => {
                 <Input 
                   id="full_name" 
                   name="full_name"
-                  value={formData.full_name}
+                  value={formData.full_name || ''}
                   onChange={handleInputChange}
                   required 
                 />
@@ -195,9 +199,10 @@ const Profile: React.FC = () => {
                   id="email" 
                   name="email"
                   type="email"
-                  value={formData.email}
+                  value={formData.email || ''}
                   onChange={handleInputChange}
                   required 
+                  disabled
                 />
               </div>
               <div className="grid gap-2">
@@ -205,14 +210,14 @@ const Profile: React.FC = () => {
                 <Input 
                   id="phone" 
                   name="phone"
-                  value={formData.phone}
+                  value={formData.phone || ''}
                   onChange={handleInputChange}
                 />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="gender">Gender</Label>
                 <Select 
-                  value={formData.gender} 
+                  value={formData.gender || 'unspecified'} 
                   onValueChange={(val) => setFormData(prev => ({ ...prev, gender: val }))}
                 >
                   <SelectTrigger>
@@ -229,7 +234,7 @@ const Profile: React.FC = () => {
               <div className="grid gap-2">
                 <Label htmlFor="chapel">Chapel</Label>
                 <Select 
-                  value={formData.chapel_id} 
+                  value={formData.chapel_id || ''} 
                   onValueChange={(val) => setFormData(prev => ({ ...prev, chapel_id: val }))}
                 >
                   <SelectTrigger>
@@ -248,7 +253,7 @@ const Profile: React.FC = () => {
                   id="password" 
                   name="password"
                   type="password"
-                  value={formData.password}
+                  value={formData.password || ''}
                   onChange={handleInputChange}
                 />
               </div>
