@@ -43,7 +43,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const menuItems = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', roles: ['superadmin', 'admin', 'student'] },
-    { label: 'Profile', icon: User, path: '/profile', roles: ['superadmin', 'admin', 'student'] },
+    { label: 'Profile', icon: User, path: '/profile', roles: ['student', 'admin'] },
     { label: 'Complaints', icon: MessageSquare, path: '/complaints', roles: ['superadmin', 'admin', 'student'] },
     { label: 'Admins', icon: Users, path: '/admins', roles: ['superadmin'] },
     { label: 'Students', icon: Users, path: '/students', roles: ['superadmin', 'admin'] },
