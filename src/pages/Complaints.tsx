@@ -68,7 +68,11 @@ const Complaints: React.FC = () => {
       let endpoint = '';
       if (user?.role === 'superadmin') endpoint = '/superadmin/complaints';
       else if (user?.role === 'admin') endpoint = '/admins/complaints';
-      else if (user?.role === 'student') endpoint = '/admins/complaints'; // Fallback to admins/complaints if student can see them
+      else if (user?.role === 'student') {
+        setComplaints([]);
+        setIsLoading(false);
+        return;
+      }
 
       const response = await api.get(endpoint || '/admins/complaints');
       setComplaints(response.data);
@@ -171,6 +175,16 @@ const Complaints: React.FC = () => {
         )}
       </div>
 
+      {user?.role === 'student' ? (
+        <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed">
+          <MessageSquare className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
+          <h2 className="text-xl font-bold mb-2">Complaint Submitted Securely</h2>
+          <p className="text-sm text-muted-foreground max-w-md mb-6">
+            Your complaints are routed directly to your hostel administrators. For privacy reasons, your complaint history is not displayed here, but be assured they are being handled.
+          </p>
+          <Button onClick={() => setIsDialogOpen(true)}><Plus className="h-4 w-4 mr-2" />Submit New Complaint</Button>
+        </Card>
+      ) : (
       <Card>
         <CardHeader>
           <CardTitle>Recent Complaints</CardTitle>
@@ -218,6 +232,7 @@ const Complaints: React.FC = () => {
           )}
         </CardContent>
       </Card>
+      )}
     </div>
   );
 };
