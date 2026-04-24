@@ -129,14 +129,14 @@ const Dashboard: React.FC = () => {
           <div className="flex justify-between text-sm">
             <span>Occupied Beds</span>
             <span className="font-medium">
-              {stats?.occupancy?.occupied || 0} / {stats?.occupancy?.total_capacity || 0}
+              {stats?.occupied_beds || 0} / {stats?.total_capacity || 0}
             </span>
           </div>
           <div className="h-4 w-full bg-muted rounded-full overflow-hidden">
             <div 
               className="h-full bg-primary transition-all" 
               style={{ 
-                width: `${stats?.occupancy?.total_capacity ? (stats.occupancy.occupied / stats.occupancy.total_capacity) * 100 : 0}%` 
+                width: `${stats?.total_capacity ? (stats.occupied_beds / stats.total_capacity) * 100 : 0}%` 
               }}
             />
           </div>
@@ -185,10 +185,10 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {stats?.occupancy?.total_capacity ? Math.round((stats.occupancy.occupied / stats.occupancy.total_capacity) * 100) : 0}%
+              {stats?.total_capacity ? Math.round((stats.occupied_beds / stats.total_capacity) * 100) : 0}%
             </div>
             <p className="text-xs text-muted-foreground">
-              {stats?.occupancy?.occupied || 0} / {stats?.occupancy?.total_capacity || 0} beds
+              {stats?.occupied_beds || 0} / {stats?.total_capacity || 0} beds
             </p>
           </CardContent>
         </Card>
@@ -204,18 +204,18 @@ const Dashboard: React.FC = () => {
             <div 
               className="h-full bg-primary transition-all" 
               style={{ 
-                width: `${stats?.occupancy?.total_capacity ? (stats.occupancy.occupied / stats.occupancy.total_capacity) * 100 : 0}%` 
+                width: `${stats?.total_capacity ? (stats.occupied_beds / stats.total_capacity) * 100 : 0}%` 
               }}
             />
           </div>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex flex-col">
               <span className="text-muted-foreground">Occupied</span>
-              <span className="font-bold">{stats?.occupancy?.occupied || 0}</span>
+              <span className="font-bold">{stats?.occupied_beds || 0}</span>
             </div>
             <div className="flex flex-col">
               <span className="text-muted-foreground">Total Capacity</span>
-              <span className="font-bold">{stats?.occupancy?.total_capacity || 0}</span>
+              <span className="font-bold">{stats?.total_capacity || 0}</span>
             </div>
           </div>
         </CardContent>
@@ -232,8 +232,8 @@ const Dashboard: React.FC = () => {
             <Home className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.profile?.room_id ? `Room ID: ${stats.profile.room_id}` : 'Not Assigned'}</div>
-            <p className="text-xs text-muted-foreground">Hostel ID: {stats?.profile?.hostel_id || 'N/A'}</p>
+            <div className="text-2xl font-bold">{stats?.profile?.room_number ? `Room: ${stats.profile.room_number}` : 'Not Assigned'}</div>
+            <p className="text-xs text-muted-foreground">Hostel: {stats?.profile?.hostel_name || 'N/A'}</p>
           </CardContent>
         </Card>
         <Card>

@@ -78,9 +78,9 @@ const Students: React.FC = () => {
   const fetchMetadata = async () => {
     try {
       const [hostelsRes, facultiesRes, chapelsRes] = await Promise.all([
-        api.get('/superadmin/hostels'),
-        api.get('/superadmin/faculties'),
-        api.get('/superadmin/chapels')
+        api.get('/common/hostels'),
+        api.get('/common/faculties'),
+        api.get('/common/chapels')
       ]);
       setHostels(hostelsRes.data);
       setFaculties(facultiesRes.data);
