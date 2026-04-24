@@ -82,7 +82,7 @@ const Rooms: React.FC = () => {
       else if (user?.role === 'admin') endpoint = '/admins/rooms';
       else if (user?.role === 'student') {
         if (selectedHostel === 'all') {
-          endpoint = user.hostel_id ? `/students/hostels/${user.hostel_id}/rooms` : '/superadmin/rooms';
+          endpoint = user.hostel_id ? `/students/hostels/${user.hostel_id}/rooms` : '/students/rooms';
         } else {
           endpoint = `/students/hostels/${selectedHostel}/rooms`;
         }

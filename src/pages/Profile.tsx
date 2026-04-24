@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
-import { User } from '@/types';
+import { User, Chapel } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,12 +10,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Save, User as UserIcon, Phone, Mail, Hash, GraduationCap, Building2, Home, Lock } from 'lucide-react';
+import { Loader2, Save, User as UserIcon, Phone, Mail, Hash, GraduationCap, Building2, Home, Lock, Church } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Profile: React.FC = () => {
   const { user, login } = useAuth();
   const [profile, setProfile] = useState<User | null>(null);
+  const [chapels, setChapels] = useState<Chapel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -24,22 +25,28 @@ const Profile: React.FC = () => {
     email: '',
     gender: 'unspecified',
     password: '',
+    chapel_id: '',
   });
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchData = async () => {
       try {
-        const response = await api.get('/students/me');
-        setProfile(response.data);
+        const [profileRes, chapelsRes] = await Promise.all([
+          api.get('/students/me'),
+          api.get('/students/chapels')
+        ]);
+        setProfile(profileRes.data);
+        setChapels(chapelsRes.data);
         setFormData({
-          full_name: response.data.full_name,
-          phone: response.data.phone || '',
-          email: response.data.email,
-          gender: response.data.gender || 'unspecified',
+          full_name: profileRes.data.full_name,
+          phone: profileRes.data.phone || '',
+          email: profileRes.data.email,
+          gender: profileRes.data.gender || 'unspecified',
           password: '',
+          chapel_id: profileRes.data.chapel_id || '',
         });
       } catch (error) {
-        console.error('Failed to fetch profile', error);
+        console.error('Failed to fetch profile settings', error);
         toast.error('Failed to load profile');
       } finally {
         setIsLoading(false);
@@ -47,7 +54,7 @@ const Profile: React.FC = () => {
     };
 
     if (user?.role === 'student') {
-      fetchProfile();
+      fetchData();
     } else {
       setProfile(user);
       setFormData({
@@ -56,6 +63,7 @@ const Profile: React.FC = () => {
         email: user?.email || '',
         gender: user?.gender || 'unspecified',
         password: '',
+        chapel_id: user?.chapel_id || '',
       });
       setIsLoading(false);
     }
@@ -70,16 +78,29 @@ const Profile: React.FC = () => {
     e.preventDefault();
     setIsSaving(true);
     try {
-      const payload = { ...formData };
+      const payload: any = { ...formData };
       if (!payload.password) {
-        delete (payload as any).password;
+        delete payload.password;
       }
+      if (!payload.chapel_id) {
+        delete payload.chapel_id;
+      }
+      if (!payload.phone) {
+        delete payload.phone;
+      }
+
       const endpoint = user?.role === 'student' ? '/students/me' : '/students/me'; 
       const response = await api.patch(endpoint, payload);
       setProfile(response.data);
       login({ token: localStorage.getItem('token') || '', user: response.data });
       toast.success('Profile updated successfully');
-      setFormData(prev => ({ ...prev, password: '' })); // Clear password field
+      setFormData(prev => ({ 
+        ...prev, 
+        password: '', 
+        phone: response.data.phone || '', 
+        gender: response.data.gender || 'unspecified',
+        chapel_id: response.data.chapel_id || '',
+      }));
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to update profile');
     } finally {
@@ -202,6 +223,22 @@ const Profile: React.FC = () => {
                     <SelectItem value="female">Female</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                     <SelectItem value="unspecified">Unspecified</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="chapel">Chapel</Label>
+                <Select 
+                  value={formData.chapel_id} 
+                  onValueChange={(val) => setFormData(prev => ({ ...prev, chapel_id: val }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select chapel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {chapels.map(chapel => (
+                      <SelectItem key={chapel.id} value={chapel.id}>{chapel.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
