@@ -244,39 +244,44 @@ const Students: React.FC = () => {
 
       {/* View Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-md rounded-2xl p-0 overflow-hidden border-none shadow-2xl">
+        <DialogContent className="max-w-[95vw] sm:max-w-md rounded-2xl p-0 overflow-hidden border shadow-2xl bg-white dark:bg-slate-900">
           {viewingStudent && (
-            <div className="relative">
-              <div className="h-24 bg-gradient-to-r from-blue-600 to-indigo-600" />
-              <div className="px-6 pb-6 pt-0 -mt-12 text-center">
-                <Avatar className="h-24 w-24 mx-auto border-4 border-white dark:border-slate-950 shadow-xl mb-4">
-                  <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${viewingStudent.full_name}`} />
-                  <AvatarFallback className="text-2xl font-black">{viewingStudent.full_name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <h3 className="text-2xl font-black tracking-tight">{viewingStudent.full_name}</h3>
-                <p className="text-sm text-muted-foreground font-medium mb-6">{viewingStudent.email}</p>
-                
-                <div className="grid grid-cols-2 gap-3 text-left">
-                  {[
-                    { label: 'Matric Number', value: viewingStudent.matric_number, icon: Hash },
-                    { label: 'Academic Level', value: `${viewingStudent.level} Level`, icon: GraduationCap },
-                    { label: 'Assigned Hostel', value: viewingStudent.hostel_name, icon: Building2 },
-                    { label: 'Room Number', value: viewingStudent.room_number, icon: Home },
-                  ].map((item, i) => (
-                    <div key={i} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800">
-                      <p className="text-[10px] font-black uppercase text-slate-500 mb-1 tracking-widest">{item.label}</p>
-                      <p className="text-sm font-bold truncate">{item.value || 'Not Assigned'}</p>
+              <div className="relative">
+                <div className="h-24 bg-gradient-to-r from-blue-600 to-indigo-600" />
+                <div className="px-6 pb-6 pt-0 -mt-12 text-center">
+                  <Avatar className="h-24 w-24 mx-auto border-4 border-white dark:border-slate-950 shadow-xl mb-4">
+                    <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${viewingStudent.full_name}`} />
+                    <AvatarFallback className="text-2xl font-black bg-blue-100 dark:bg-blue-900">{viewingStudent.full_name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{viewingStudent.full_name}</h3>
+                  <p className="text-sm text-muted-foreground font-medium mb-6">{viewingStudent.email}</p>
+
+                  <div className="grid grid-cols-2 gap-3 text-left">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+                      <p className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1 tracking-widest">Matric Number</p>
+                      <p className="text-sm font-bold truncate text-slate-900 dark:text-white">{viewingStudent.matric_number || 'Not Assigned'}</p>
                     </div>
-                  ))}
-                </div>
-                
-                <div className="mt-6 pt-6 border-t flex flex-col gap-2">
-                  <Button className="w-full font-bold h-11" variant="secondary" onClick={() => setIsViewDialogOpen(false)}>
-                    Close Profile
-                  </Button>
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+                      <p className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1 tracking-widest">Academic Level</p>
+                      <p className="text-sm font-bold truncate text-slate-900 dark:text-white">{viewingStudent.level} Level</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+                      <p className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1 tracking-widest">Assigned Hostel</p>
+                      <p className="text-sm font-bold truncate text-slate-900 dark:text-white">{viewingStudent.hostel_name || 'Not Assigned'}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+                      <p className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1 tracking-widest">Room Number</p>
+                      <p className="text-sm font-bold truncate text-slate-900 dark:text-white">{viewingStudent.room_number || 'Not Assigned'}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700 flex flex-col gap-2">
+                    <Button className="w-full font-bold h-11" variant="secondary" onClick={() => setIsViewDialogOpen(false)}>
+                      Close Profile
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
           )}
         </DialogContent>
       </Dialog>

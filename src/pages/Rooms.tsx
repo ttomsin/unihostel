@@ -87,17 +87,19 @@ const Rooms: React.FC = () => {
     setIsLoading(true);
     try {
       let endpoint = '';
+
       if (user?.role === 'superadmin') {
-        endpoint = selectedHostel === 'all' 
-          ? '/superadmin/rooms' 
-          : `/common/hostels/${selectedHostel}/rooms`;
+        // Always use the superadmin endpoint
+        endpoint = '/superadmin/rooms';
       }
-      else if (user?.role === 'admin') endpoint = '/admins/rooms';
+      else if (user?.role === 'admin') {
+        endpoint = '/admins/rooms';
+      }
       else if (user?.role === 'student') {
-        if (selectedHostel === 'all') {
-          endpoint = user.hostel_id ? `/common/hostels/${user.hostel_id}/rooms` : '';
-        } else {
+        if (selectedHostel !== 'all' && selectedHostel !== '') {
           endpoint = `/common/hostels/${selectedHostel}/rooms`;
+        } else if (user.hostel_id) {
+          endpoint = `/common/hostels/${user.hostel_id}/rooms`;
         }
       }
 
@@ -108,7 +110,16 @@ const Rooms: React.FC = () => {
       }
 
       const response = await api.get(endpoint);
-      setRooms(Array.isArray(response.data) ? response.data : []);
+      let roomsData = response.data;
+
+      // Filter rooms by hostel if superadmin selected a specific hostel
+      if (user?.role === 'superadmin' && selectedHostel !== 'all') {
+        roomsData = Array.isArray(roomsData)
+            ? roomsData.filter((room: RoomResponse) => room.hostel_id === selectedHostel)
+            : [];
+      }
+
+      setRooms(Array.isArray(roomsData) ? roomsData : []);
     } catch (error) {
       console.error('Failed to fetch rooms', error);
       toast.error('Failed to load rooms');
