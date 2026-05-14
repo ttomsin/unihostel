@@ -12,8 +12,8 @@ import {
   Church, 
   Settings, 
   LogOut,
-  Menu,
-  ChevronRight
+  FlaskConical,
+  SeparatorHorizontal
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -52,6 +52,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { label: 'Faculties', icon: GraduationCap, path: '/faculties', roles: ['superadmin'] },
     { label: 'Chapels', icon: Church, path: '/chapels', roles: ['superadmin'] },
     { label: 'Settings', icon: Settings, path: '/settings', roles: ['superadmin'] },
+    { label: 'System Testing', icon: FlaskConical, path: '/testing', roles: ['superadmin'] },
   ];
 
   const filteredMenuItems = menuItems.filter(item => user && item.roles.includes(user.role));
@@ -78,8 +79,10 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     tooltip={item.label}
                   >
                     <Link to={item.path}>
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.label}</span>
+                      <item.icon className={`h-5 w-5 ${item.path === '/testing' ? 'text-rose-500' : ''}`} />
+                      <span className={item.path === '/testing' ? 'font-bold text-rose-600 dark:text-rose-400' : ''}>
+                        {item.label}
+                      </span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -108,7 +111,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <Separator orientation="vertical" className="mr-2 h-4" />
             <div className="flex-1">
               <h1 className="text-lg font-semibold capitalize">
-                {location.pathname === '/dashboard' ? 'Dashboard' : location.pathname.substring(1)}
+                {location.pathname === '/dashboard' ? 'Dashboard' : 
+                 location.pathname === '/testing' ? 'System Testing' : 
+                 location.pathname.substring(1)}
               </h1>
             </div>
           </header>

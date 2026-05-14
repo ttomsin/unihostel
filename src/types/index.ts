@@ -86,6 +86,8 @@ export interface Complaint {
 export interface ComplaintResponse extends Complaint {
   student_name: string;
   hostel_name: string;
+  resolve_message?: string;
+  resolved?: boolean;
 }
 
 export interface SuperAdminSettings {

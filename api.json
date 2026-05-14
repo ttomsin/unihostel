@@ -1,0 +1,3056 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "Backend API for the Student Hostel Management System.",
+    "title": "Hostel Management API",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "name": "Thompson",
+      "url": "https://github.com/ttomsin"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/api/v1",
+  "paths": {
+    "/admins/complaints": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "admins"
+        ],
+        "summary": "Get complaints in admin's hostel",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.ComplaintResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admins/complaints/{complaint_id}/resolve": {
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Admin can mark a complaint as resolved and add a message.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "admins"
+        ],
+        "summary": "Resolve a complaint",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Complaint UUID",
+            "name": "complaint_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Resolution details",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.ResolveComplaintRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.ComplaintResponse"
+            }
+          }
+        }
+      }
+    },
+    "/admins/dashboard": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "admins"
+        ],
+        "summary": "Get admin dashboard stats",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.AdminDashboardResponse"
+            }
+          }
+        }
+      }
+    },
+    "/admins/me": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "admins"
+        ],
+        "summary": "Get admin profile",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.UserResponse"
+            }
+          }
+        }
+      }
+    },
+    "/admins/notices": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "admins"
+        ],
+        "summary": "Create a hostel notice",
+        "parameters": [
+          {
+            "description": "Notice data",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.CreateNoticeRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.NoticeResponse"
+            }
+          }
+        }
+      }
+    },
+    "/admins/notifications": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "admins"
+        ],
+        "summary": "Get notifications for admin's hostel",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.AdminNotificationResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admins/notifications/{notification_id}/read": {
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "admins"
+        ],
+        "summary": "Mark notification as read",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Notification UUID",
+            "name": "notification_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      }
+    },
+    "/admins/notify-student": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "admins"
+        ],
+        "summary": "Send a notification to a student",
+        "parameters": [
+          {
+            "description": "Notification details",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.AdminNotifyStudentRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.AdminNotificationResponse"
+            }
+          }
+        }
+      }
+    },
+    "/admins/room-change-requests": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "admins"
+        ],
+        "summary": "Get room change requests for admin's hostel",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Filter by status (pending, approved, rejected)",
+            "name": "status",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.RoomChangeRequestResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admins/room-change-requests/{request_id}/review": {
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "admins"
+        ],
+        "summary": "Approve or reject a room change request",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Request UUID",
+            "name": "request_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Review details",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.ReviewRoomChangeRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.RoomChangeRequestResponse"
+            }
+          }
+        }
+      }
+    },
+    "/admins/rooms": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "admins"
+        ],
+        "summary": "Get rooms in admin's hostel",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.RoomResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admins/rooms/{room_id}/students": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Admins can only fetch students from a room within their assigned hostel.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "admins"
+        ],
+        "summary": "Get students in a specific room",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Room UUID",
+            "name": "room_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.UserResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admins/students": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "admins"
+        ],
+        "summary": "Get students in admin's hostel",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.UserResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admins/students/toggle-room-lock": {
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "admins"
+        ],
+        "summary": "Lock or unlock a student's ability to change rooms",
+        "parameters": [
+          {
+            "description": "Toggle details",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.ToggleStudentRoomLockRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      }
+    },
+    "/admins/students/{student_id}/remove-room": {
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Admins can remove students from rooms within their assigned hostel. A notification is sent to the student.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "admins"
+        ],
+        "summary": "Remove a student from their room",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Student UUID",
+            "name": "student_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Notification details",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.AdminNotifyStudentRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "description": "Authenticate as student (matric_number + password) or admin/superadmin (email + password).",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "auth"
+        ],
+        "summary": "Login",
+        "parameters": [
+          {
+            "description": "Credentials",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/handlers.LoginRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/handlers.LoginResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      }
+    },
+    "/common/chapels": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns a list of all chapels.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "common"
+        ],
+        "summary": "Get all chapels",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.ChapelResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/common/faculties": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns a list of all faculties.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "common"
+        ],
+        "summary": "Get all faculties",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.FacultyResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/common/hostels": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns a list of all hostels and their associated faculties.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "common"
+        ],
+        "summary": "Get all hostels",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.HostelResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/common/hostels/{hostel_id}/rooms": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns a list of rooms for a given hostel, including current occupancy.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "common"
+        ],
+        "summary": "Get rooms in a specific hostel",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Hostel UUID",
+            "name": "hostel_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.RoomResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/students/complaints": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "students"
+        ],
+        "summary": "Get my complaints",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.ComplaintResponse"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "students"
+        ],
+        "summary": "Post a complaint",
+        "parameters": [
+          {
+            "description": "Complaint data",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.CreateComplaintRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.ComplaintResponse"
+            }
+          }
+        }
+      }
+    },
+    "/students/dashboard": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "students"
+        ],
+        "summary": "Get student dashboard stats",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.StudentDashboardResponse"
+            }
+          }
+        }
+      }
+    },
+    "/students/me": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "students"
+        ],
+        "summary": "Get student profile",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.UserResponse"
+            }
+          }
+        }
+      },
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Allows a student to update their details. Changing faculty automatically updates hostel and removes them from any previously assigned room.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "students"
+        ],
+        "summary": "Update student profile",
+        "parameters": [
+          {
+            "description": "Profile update data",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.UpdateProfileRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.UserResponse"
+            }
+          }
+        }
+      }
+    },
+    "/students/notifications": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "students"
+        ],
+        "summary": "Get my notifications",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.AdminNotificationResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/students/notifications/{notification_id}/read": {
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "students"
+        ],
+        "summary": "Mark notification as read",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Notification UUID",
+            "name": "notification_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      }
+    },
+    "/students/room-change-requests": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "students"
+        ],
+        "summary": "Get my room change requests",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.RoomChangeRequestResponse"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Student requests to move to a different room. Requires admin approval.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "students"
+        ],
+        "summary": "Request to change room",
+        "parameters": [
+          {
+            "description": "Room change details",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.CreateRoomChangeRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.RoomChangeRequestResponse"
+            }
+          }
+        }
+      }
+    },
+    "/students/rooms/{room_id}/join": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Allows a student to select a room within their assigned hostel, subject to level and chapel distribution rules.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "students"
+        ],
+        "summary": "Join a room",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Room UUID",
+            "name": "room_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/admins": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "List all admins",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.UserResponse"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Add an admin",
+        "parameters": [
+          {
+            "description": "Admin info",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.AddAdminRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.UserResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/admins/{id}": {
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Update an admin",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Admin UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Admin info",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.AddAdminRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.UserResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/chapels": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin",
+          "students"
+        ],
+        "summary": "List all chapels",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.ChapelResponse"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Create a chapel",
+        "parameters": [
+          {
+            "description": "Chapel info",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.CreateChapelRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.ChapelResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/chapels/{id}": {
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Delete a chapel",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Chapel UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      },
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Update a chapel",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Chapel UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Chapel info",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.CreateChapelRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.ChapelResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/complaints": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "List all complaints",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.ComplaintResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/dashboard": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Get superadmin dashboard stats",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.SuperAdminDashboardResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/faculties": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin",
+          "students"
+        ],
+        "summary": "List all faculties",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.FacultyResponse"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Create a faculty",
+        "parameters": [
+          {
+            "description": "Faculty info",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.CreateFacultyRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.FacultyResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/faculties/assign": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Assign a faculty to a hostel",
+        "parameters": [
+          {
+            "description": "Assignment data",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.AssignFacultyRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/faculties/unassign": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Remove a faculty from a hostel",
+        "parameters": [
+          {
+            "description": "Unassignment data",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.AssignFacultyRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/faculties/{id}": {
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Delete a faculty",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Faculty UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      },
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Update a faculty",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Faculty UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Faculty info",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.CreateFacultyRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.FacultyResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/hostels": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "List all hostels",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.HostelResponse"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Create a hostel",
+        "parameters": [
+          {
+            "description": "Hostel info",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.CreateHostelRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.HostelResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/hostels/{id}": {
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Delete a hostel",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Hostel UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      },
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Update a hostel",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Hostel UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Hostel info",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.CreateHostelRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.HostelResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/rooms": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "List all rooms",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.RoomResponse"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Batch create rooms",
+        "parameters": [
+          {
+            "description": "Room creation config",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.CreateRoomsRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/rooms/{id}": {
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Delete a room",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Room UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      },
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Update a room",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Room UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Room info",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.Room"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.RoomResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/settings": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Get superadmin settings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.SuperAdminSettings"
+            }
+          }
+        }
+      },
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Update superadmin settings",
+        "parameters": [
+          {
+            "description": "Settings",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.UpdateSettingsRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.SuperAdminSettings"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/students": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "List all students",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.UserResponse"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Add a student",
+        "parameters": [
+          {
+            "description": "Student info",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.AddStudentRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.UserResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/students/batch": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Add students in batch",
+        "parameters": [
+          {
+            "description": "List of students",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.AddStudentRequest"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/testing/admins": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "testing"
+        ],
+        "summary": "Batch create admins (Testing Mode)",
+        "parameters": [
+          {
+            "description": "List of admins",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.AddAdminRequest"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/testing/chapels": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "testing"
+        ],
+        "summary": "Batch create chapels (Testing Mode)",
+        "parameters": [
+          {
+            "description": "List of chapels",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.CreateChapelRequest"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/testing/faculties": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "testing"
+        ],
+        "summary": "Batch create faculties (Testing Mode)",
+        "parameters": [
+          {
+            "description": "List of faculties",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.CreateFacultyRequest"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/testing/hostels": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "testing"
+        ],
+        "summary": "Batch create hostels (Testing Mode)",
+        "parameters": [
+          {
+            "description": "List of hostels",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.CreateHostelRequest"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/testing/students": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "testing"
+        ],
+        "summary": "Batch create students (Testing Mode)",
+        "parameters": [
+          {
+            "description": "List of students",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.AddStudentRequest"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      }
+    },
+    "/superadmin/users/{id}": {
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "superadmin"
+        ],
+        "summary": "Delete a user",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.MessageResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "handlers.LoginRequest": {
+      "type": "object",
+      "required": [
+        "password"
+      ],
+      "properties": {
+        "email": {
+          "type": "string",
+          "example": "admin@hostel.admin"
+        },
+        "matric_number": {
+          "type": "string",
+          "example": "CSC/2021/001"
+        },
+        "password": {
+          "type": "string",
+          "example": "secret123"
+        }
+      }
+    },
+    "handlers.LoginResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/definitions/models.UserResponse"
+        }
+      }
+    },
+    "models.AddAdminRequest": {
+      "type": "object",
+      "required": [
+        "full_name"
+      ],
+      "properties": {
+        "full_name": {
+          "type": "string"
+        },
+        "hostel_id": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "models.AddStudentRequest": {
+      "type": "object",
+      "required": [
+        "full_name",
+        "level",
+        "matric_number"
+      ],
+      "properties": {
+        "full_name": {
+          "type": "string"
+        },
+        "level": {
+          "type": "integer"
+        },
+        "matric_number": {
+          "type": "string"
+        }
+      }
+    },
+    "models.AdminDashboardResponse": {
+      "type": "object",
+      "properties": {
+        "block_distribution": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.BlockDistributionStat"
+          }
+        },
+        "complaints_trend": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.ComplaintsTrendStat"
+          }
+        },
+        "hostel_name": {
+          "type": "string"
+        },
+        "level_distribution": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.DistributionStat"
+          }
+        },
+        "occupied_beds": {
+          "type": "integer"
+        },
+        "total_capacity": {
+          "type": "integer"
+        },
+        "total_complaints": {
+          "type": "integer"
+        },
+        "total_rooms": {
+          "type": "integer"
+        },
+        "total_students": {
+          "type": "integer"
+        }
+      }
+    },
+    "models.AdminNotificationResponse": {
+      "type": "object",
+      "properties": {
+        "admin_id": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "is_read": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
+        },
+        "room_id": {
+          "type": "string"
+        },
+        "room_number": {
+          "type": "string"
+        },
+        "student_id": {
+          "type": "string"
+        },
+        "student_name": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
+    "models.AdminNotifyStudentRequest": {
+      "type": "object",
+      "required": [
+        "message",
+        "student_id",
+        "title"
+      ],
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "room_id": {
+          "type": "string"
+        },
+        "student_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "description": "info, warning, urgent",
+          "type": "string"
+        }
+      }
+    },
+    "models.AssignFacultyRequest": {
+      "type": "object",
+      "required": [
+        "faculty_id",
+        "hostel_id"
+      ],
+      "properties": {
+        "faculty_id": {
+          "type": "string"
+        },
+        "hostel_id": {
+          "type": "string"
+        }
+      }
+    },
+    "models.BlockDistributionStat": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "rooms": {
+          "type": "integer"
+        },
+        "students": {
+          "type": "integer"
+        }
+      }
+    },
+    "models.ChapelResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "models.ComplaintResponse": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "hostel_id": {
+          "type": "string"
+        },
+        "hostel_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "resolve_message": {
+          "type": "string"
+        },
+        "resolved": {
+          "type": "boolean"
+        },
+        "status": {
+          "type": "string"
+        },
+        "student_id": {
+          "type": "string"
+        },
+        "student_name": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "models.ComplaintsTrendStat": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "models.CreateChapelRequest": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "models.CreateComplaintRequest": {
+      "type": "object",
+      "required": [
+        "description",
+        "title"
+      ],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "models.CreateFacultyRequest": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "hostel_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "models.CreateHostelRequest": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "models.CreateNoticeRequest": {
+      "type": "object",
+      "required": [
+        "content",
+        "title"
+      ],
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "models.CreateRoomChangeRequest": {
+      "type": "object",
+      "required": [
+        "reason",
+        "to_room_id"
+      ],
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "to_room_id": {
+          "type": "string"
+        },
+        "urgency": {
+          "description": "normal, urgent, emergency",
+          "type": "string"
+        }
+      }
+    },
+    "models.CreateRoomsRequest": {
+      "type": "object",
+      "required": [
+        "capacity",
+        "end_letter",
+        "gender",
+        "hostel_id",
+        "room_count",
+        "start_letter"
+      ],
+      "properties": {
+        "capacity": {
+          "type": "integer"
+        },
+        "end_letter": {
+          "type": "string"
+        },
+        "gender": {
+          "$ref": "#/definitions/models.Gender"
+        },
+        "hostel_id": {
+          "type": "string"
+        },
+        "room_count": {
+          "type": "integer"
+        },
+        "start_letter": {
+          "type": "string"
+        }
+      }
+    },
+    "models.DistributionStat": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "models.FacultyResponse": {
+      "type": "object",
+      "properties": {
+        "hostel_id": {
+          "type": "string"
+        },
+        "hostel_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "models.Gender": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female",
+        "other",
+        "unspecified"
+      ],
+      "x-enum-varnames": [
+        "GenderMale",
+        "GenderFemale",
+        "GenderOther",
+        "GenderUnspecified"
+      ]
+    },
+    "models.HostelOccupancyStat": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "occupied": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        }
+      }
+    },
+    "models.HostelResponse": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "faculties": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.FacultyResponse"
+          }
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "models.MessageResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "models.NoticeResponse": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "hostel_id": {
+          "type": "string"
+        },
+        "hostel_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "models.RecentActivity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
+    "models.ResolveComplaintRequest": {
+      "type": "object",
+      "required": [
+        "resolved"
+      ],
+      "properties": {
+        "resolve_message": {
+          "type": "string"
+        },
+        "resolved": {
+          "description": "Pointer to handle false correctly",
+          "type": "boolean"
+        }
+      }
+    },
+    "models.ReviewRoomChangeRequest": {
+      "type": "object",
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "admin_note": {
+          "type": "string"
+        },
+        "status": {
+          "description": "approved, rejected",
+          "type": "string"
+        }
+      }
+    },
+    "models.Role": {
+      "type": "string",
+      "enum": [
+        "superadmin",
+        "admin",
+        "student"
+      ],
+      "x-enum-varnames": [
+        "RoleSuperAdmin",
+        "RoleAdmin",
+        "RoleStudent"
+      ]
+    },
+    "models.Room": {
+      "type": "object",
+      "properties": {
+        "capacity": {
+          "type": "integer"
+        },
+        "gender": {
+          "$ref": "#/definitions/models.Gender"
+        },
+        "hostel_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        }
+      }
+    },
+    "models.RoomChangeRequestResponse": {
+      "type": "object",
+      "properties": {
+        "admin_note": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "from_room_id": {
+          "type": "string"
+        },
+        "from_room_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "reviewed_by": {
+          "type": "string"
+        },
+        "reviewer_name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "student_id": {
+          "type": "string"
+        },
+        "student_name": {
+          "type": "string"
+        },
+        "to_room_id": {
+          "type": "string"
+        },
+        "to_room_name": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        },
+        "urgency": {
+          "type": "string"
+        }
+      }
+    },
+    "models.RoomResponse": {
+      "type": "object",
+      "properties": {
+        "capacity": {
+          "type": "integer"
+        },
+        "gender": {
+          "$ref": "#/definitions/models.Gender"
+        },
+        "hostel_id": {
+          "type": "string"
+        },
+        "hostel_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        },
+        "occupancy": {
+          "type": "integer"
+        },
+        "students": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.UserSimpleResponse"
+          }
+        }
+      }
+    },
+    "models.StudentDashboardResponse": {
+      "type": "object",
+      "properties": {
+        "notifications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.NoticeResponse"
+          }
+        },
+        "profile": {
+          "$ref": "#/definitions/models.UserResponse"
+        },
+        "recent_activity": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.RecentActivity"
+          }
+        },
+        "roommate_details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.UserResponse"
+          }
+        },
+        "roommates": {
+          "type": "integer"
+        }
+      }
+    },
+    "models.SuperAdminDashboardResponse": {
+      "type": "object",
+      "properties": {
+        "hostel_occupancy": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.HostelOccupancyStat"
+          }
+        },
+        "level_distribution": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.DistributionStat"
+          }
+        },
+        "occupied_beds": {
+          "type": "integer"
+        },
+        "total_admins": {
+          "type": "integer"
+        },
+        "total_capacity": {
+          "type": "integer"
+        },
+        "total_hostels": {
+          "type": "integer"
+        },
+        "total_rooms": {
+          "type": "integer"
+        },
+        "total_students": {
+          "type": "integer"
+        }
+      }
+    },
+    "models.SuperAdminSettings": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "show_complaints": {
+          "type": "boolean"
+        }
+      }
+    },
+    "models.ToggleStudentRoomLockRequest": {
+      "type": "object",
+      "required": [
+        "can_change",
+        "student_id"
+      ],
+      "properties": {
+        "can_change": {
+          "type": "boolean"
+        },
+        "student_id": {
+          "type": "string"
+        }
+      }
+    },
+    "models.UpdateProfileRequest": {
+      "type": "object",
+      "properties": {
+        "chapel_id": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "faculty_id": {
+          "type": "string"
+        },
+        "full_name": {
+          "type": "string"
+        },
+        "gender": {
+          "$ref": "#/definitions/models.Gender"
+        },
+        "password": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        }
+      }
+    },
+    "models.UpdateSettingsRequest": {
+      "type": "object",
+      "properties": {
+        "show_complaints": {
+          "type": "boolean"
+        }
+      }
+    },
+    "models.UserResponse": {
+      "type": "object",
+      "properties": {
+        "chapel_id": {
+          "type": "string"
+        },
+        "chapel_name": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "edit_count": {
+          "type": "integer"
+        },
+        "email": {
+          "type": "string"
+        },
+        "faculty_id": {
+          "type": "string"
+        },
+        "faculty_name": {
+          "type": "string"
+        },
+        "full_name": {
+          "type": "string"
+        },
+        "gender": {
+          "$ref": "#/definitions/models.Gender"
+        },
+        "hostel_id": {
+          "type": "string"
+        },
+        "hostel_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "is_active": {
+          "type": "boolean"
+        },
+        "level": {
+          "type": "integer"
+        },
+        "matric_number": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "raw_password": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/definitions/models.Role"
+        },
+        "room_id": {
+          "type": "string"
+        },
+        "room_number": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "models.UserSimpleResponse": {
+      "type": "object",
+      "properties": {
+        "full_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "level": {
+          "type": "integer"
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "description": "Type \"Bearer\" followed by a space and the JWT token.",
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  }
+}

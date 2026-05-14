@@ -38,7 +38,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, Search, UserPlus, Mail, Phone, Building2 } from 'lucide-react';
+import { Loader2, Search, UserPlus, Mail, Phone, Building2, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Admins: React.FC = () => {
@@ -48,13 +48,17 @@ const Admins: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-
   const [newAdmin, setNewAdmin] = useState({
     full_name: '',
     hostel_id: '',
     password: ''
   });
+
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingAdmin, setEditingAdmin] = useState<UserResponse | null>(null);
+  const [editHostelId, setEditHostelId] = useState('');
 
   const fetchAdmins = async () => {
     setIsLoading(true);
@@ -98,6 +102,26 @@ const Admins: React.FC = () => {
       fetchAdmins();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to add admin');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateAdminHostel = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAdmin) return;
+    
+    setIsSubmitting(true);
+    try {
+      await api.patch(`/superadmin/admins/${editingAdmin.id}`, {
+        hostel_id: editHostelId,
+        full_name: editingAdmin.full_name // Include current name as endpoint seems to expect AddAdminRequest
+      });
+      toast.success('Admin hostel assignment updated');
+      setIsEditDialogOpen(false);
+      fetchAdmins();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to update admin assignment');
     } finally {
       setIsSubmitting(false);
     }
@@ -248,7 +272,18 @@ const Admins: React.FC = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">Edit</Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            setEditingAdmin(admin);
+                            setEditHostelId(admin.hostel_id || '');
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Edit
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -258,6 +293,43 @@ const Admins: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Admin Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Admin Assignment</DialogTitle>
+            <DialogDescription>
+              Update the hostel assigned to {editingAdmin?.full_name}.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUpdateAdminHostel} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-hostel">Assigned Hostel</Label>
+              <Select 
+                value={editHostelId} 
+                onValueChange={setEditHostelId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a hostel" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Assignment</SelectItem>
+                  {hostels.map(hostel => (
+                    <SelectItem key={hostel.id} value={hostel.id}>{hostel.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Update Assignment
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

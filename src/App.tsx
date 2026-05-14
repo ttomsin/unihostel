@@ -19,6 +19,7 @@ import Hostels from '@/pages/Hostels';
 import Settings from '@/pages/Settings';
 import Faculties from '@/pages/Faculties';
 import Chapels from '@/pages/Chapels';
+import TestingPage from '@/pages/TestingPage';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
@@ -107,6 +108,14 @@ export default function App() {
               <ProtectedRoute allowedRoles={['superadmin']}>
                 <MainLayout>
                   <Settings />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/testing" element={
+              <ProtectedRoute allowedRoles={['superadmin']}>
+                <MainLayout>
+                  <TestingPage />
                 </MainLayout>
               </ProtectedRoute>
             } />

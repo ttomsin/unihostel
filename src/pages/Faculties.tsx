@@ -29,13 +29,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { Loader2, Plus, GraduationCap, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -47,9 +42,9 @@ const Faculties: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const [newFaculty, setNewFaculty] = useState({
+  const [newFaculty, setNewFaculty] = useState<{name: string, hostel_ids: string[]}>({
     name: '',
-    hostel_id: ''
+    hostel_ids: []
   });
 
   const fetchFaculties = async () => {
@@ -83,11 +78,21 @@ const Faculties: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await api.post('/superadmin/faculties', newFaculty);
+      const res = await api.post('/superadmin/faculties', { name: newFaculty.name });
+      const createdFaculty = res.data;
+      
+      for (const hostelId of newFaculty.hostel_ids) {
+        await api.post('/superadmin/faculties/assign', {
+          faculty_id: createdFaculty.id,
+          hostel_id: hostelId
+        });
+      }
+
       toast.success('Faculty created successfully');
-      setNewFaculty({ name: '', hostel_id: '' });
+      setNewFaculty({ name: '', hostel_ids: [] });
       setIsAddDialogOpen(false);
       fetchFaculties();
+      fetchHostels();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to create faculty');
     } finally {
@@ -97,25 +102,61 @@ const Faculties: React.FC = () => {
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingFaculty, setEditingFaculty] = useState<FacultyResponse | null>(null);
+  const [editFacultyName, setEditFacultyName] = useState('');
+  const [editHostelIds, setEditHostelIds] = useState<string[]>([]);
 
   const handleUpdateFaculty = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingFaculty) return;
     setIsSubmitting(true);
     try {
-      await api.patch(`/superadmin/faculties/${editingFaculty.id}`, { 
-        name: editingFaculty.name,
-        hostel_id: editingFaculty.hostel_id
-      });
+      if (editFacultyName !== editingFaculty.name) {
+        await api.patch(`/superadmin/faculties/${editingFaculty.id}`, { 
+          name: editFacultyName
+        });
+      }
+
+      const currentHostelIds = getAssignedHostelIds(editingFaculty.id);
+      const toAssign = editHostelIds.filter(id => !currentHostelIds.includes(id));
+      const toUnassign = currentHostelIds.filter(id => !editHostelIds.includes(id));
+
+      for (const hostelId of toAssign) {
+        await api.post('/superadmin/faculties/assign', {
+          faculty_id: editingFaculty.id,
+          hostel_id: hostelId
+        });
+      }
+
+      for (const hostelId of toUnassign) {
+        await api.post('/superadmin/faculties/unassign', {
+          faculty_id: editingFaculty.id,
+          hostel_id: hostelId
+        });
+      }
+
       toast.success('Faculty updated successfully');
       setIsEditDialogOpen(false);
       fetchFaculties();
+      fetchHostels();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to update faculty');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const getAssignedHostels = (facultyId: string) => {
+    return hostels.filter(h => h.faculties?.some(f => f.id === facultyId));
+  };
+
+  const getAssignedHostelIds = (facultyId: string) => {
+    return getAssignedHostels(facultyId).map(h => h.id);
+  };
+
+  // Deduplicate faculties in case the API returns duplicates per hostel
+  const uniqueFaculties = faculties.filter((faculty, index, self) => 
+    index === self.findIndex((f) => f.id === faculty.id)
+  );
 
   return (
     <div className="space-y-6">
@@ -126,56 +167,69 @@ const Faculties: React.FC = () => {
             Manage university faculties and their hostel assignments.
           </p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Faculty
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Faculty</DialogTitle>
-              <DialogDescription>
-                Add a new faculty and assign it to a default hostel.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleCreateFaculty} className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Faculty Name</Label>
-                <Input 
-                  id="name" 
-                  placeholder="e.g., Faculty of Science" 
-                  value={newFaculty.name}
-                  onChange={(e) => setNewFaculty(prev => ({ ...prev, name: e.target.value }))}
-                  required 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="hostel">Assign Hostel</Label>
-                <Select 
-                  value={newFaculty.hostel_id} 
-                  onValueChange={(val) => setNewFaculty(prev => ({ ...prev, hostel_id: val }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a hostel" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {hostels.map(hostel => (
-                      <SelectItem key={hostel.id} value={hostel.id}>{hostel.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <DialogFooter>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Create Faculty
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        {user?.role === 'superadmin' && (
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Faculty
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Faculty</DialogTitle>
+                <DialogDescription>
+                  Add a new faculty and assign it to hostels.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreateFaculty} className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Faculty Name</Label>
+                  <Input 
+                    id="name" 
+                    placeholder="e.g., Faculty of Science" 
+                    value={newFaculty.name}
+                    onChange={(e) => setNewFaculty(prev => ({ ...prev, name: e.target.value }))}
+                    required 
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label>Assign Hostels</Label>
+                  <div className="grid gap-2 border rounded-md p-4 max-h-48 overflow-y-auto">
+                    {hostels.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No hostels available.</p>
+                    ) : (
+                      hostels.map(hostel => (
+                        <div key={hostel.id} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`hostel-${hostel.id}`}
+                            checked={newFaculty.hostel_ids.includes(hostel.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setNewFaculty(prev => ({ ...prev, hostel_ids: [...prev.hostel_ids, hostel.id] }));
+                              } else {
+                                setNewFaculty(prev => ({ ...prev, hostel_ids: prev.hostel_ids.filter(id => id !== hostel.id) }));
+                              }
+                            }}
+                          />
+                          <Label htmlFor={`hostel-${hostel.id}`} className="font-normal cursor-pointer leading-none">
+                            {hostel.name}
+                          </Label>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Create Faculty
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -183,7 +237,7 @@ const Faculties: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Edit Faculty</DialogTitle>
             <DialogDescription>
-              Update faculty name and hostel assignment.
+              Update faculty name and hostel assignments.
             </DialogDescription>
           </DialogHeader>
           {editingFaculty && (
@@ -192,26 +246,37 @@ const Faculties: React.FC = () => {
                 <Label htmlFor="edit_name">Faculty Name</Label>
                 <Input 
                   id="edit_name" 
-                  value={editingFaculty.name}
-                  onChange={(e) => setEditingFaculty({ ...editingFaculty, name: e.target.value })}
+                  value={editFacultyName}
+                  onChange={(e) => setEditFacultyName(e.target.value)}
                   required 
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit_hostel">Assign Hostel</Label>
-                <Select 
-                  value={editingFaculty.hostel_id} 
-                  onValueChange={(val) => setEditingFaculty({ ...editingFaculty, hostel_id: val })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a hostel" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {hostels.map(hostel => (
-                      <SelectItem key={hostel.id} value={hostel.id}>{hostel.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="space-y-3">
+                <Label>Assign Hostels</Label>
+                <div className="grid gap-2 border rounded-md p-4 max-h-48 overflow-y-auto">
+                  {hostels.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No hostels available.</p>
+                  ) : (
+                    hostels.map(hostel => (
+                      <div key={hostel.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`edit-hostel-${hostel.id}`}
+                          checked={editHostelIds.includes(hostel.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setEditHostelIds(prev => [...prev, hostel.id]);
+                            } else {
+                              setEditHostelIds(prev => prev.filter(id => id !== hostel.id));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`edit-hostel-${hostel.id}`} className="font-normal cursor-pointer leading-none">
+                          {hostel.name}
+                        </Label>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isSubmitting}>
@@ -236,7 +301,7 @@ const Faculties: React.FC = () => {
             <div className="flex justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          ) : faculties.length === 0 ? (
+          ) : uniqueFaculties.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <GraduationCap className="h-12 w-12 mx-auto mb-4 opacity-20" />
               <p>No faculties found.</p>
@@ -247,34 +312,49 @@ const Faculties: React.FC = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Faculty Name</TableHead>
-                    <TableHead>Assigned Hostel</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>Assigned Hostels</TableHead>
+                    {user?.role === 'superadmin' && <TableHead className="text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {faculties.map((faculty) => (
-                    <TableRow key={faculty.id}>
-                      <TableCell className="font-medium">{faculty.name}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Building2 className="h-3 w-3 text-muted-foreground" />
-                          <span>{faculty.hostel_name || 'Not assigned'}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => {
-                            setEditingFaculty(faculty);
-                            setIsEditDialogOpen(true);
-                          }}
-                        >
-                          Edit
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {uniqueFaculties.map((faculty) => {
+                    const assignedHostels = getAssignedHostels(faculty.id);
+                    return (
+                      <TableRow key={faculty.id}>
+                        <TableCell className="font-medium">{faculty.name}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap items-center gap-1">
+                            {assignedHostels.length > 0 ? (
+                              assignedHostels.map(h => (
+                                <Badge key={h.id} variant="secondary" className="flex items-center gap-1 font-normal">
+                                  <Building2 className="h-3 w-3" />
+                                  {h.name}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-muted-foreground text-sm">Not assigned</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        {user?.role === 'superadmin' && (
+                          <TableCell className="text-right">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                setEditingFaculty(faculty);
+                                setEditFacultyName(faculty.name);
+                                setEditHostelIds(assignedHostels.map(h => h.id));
+                                setIsEditDialogOpen(true);
+                              }}
+                            >
+                              Edit
+                            </Button>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

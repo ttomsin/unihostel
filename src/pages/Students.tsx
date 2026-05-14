@@ -38,19 +38,18 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, Search, UserPlus, Mail, Phone, Hash, Building2, Home } from 'lucide-react';
+import { Loader2, Search, UserPlus, Mail, Phone, Building2, GraduationCap, ChevronRight, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Students: React.FC = () => {
   const { user } = useAuth();
   const [students, setStudents] = useState<UserResponse[]>([]);
-  const [hostels, setHostels] = useState<Hostel[]>([]);
-  const [faculties, setFaculties] = useState<Faculty[]>([]);
-  const [chapels, setChapels] = useState<Chapel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isBatchDialogOpen, setIsBatchDialogOpen] = useState(false);
+  const [batchData, setBatchData] = useState('');
 
   const [newStudent, setNewStudent] = useState({
     full_name: '',
@@ -75,30 +74,9 @@ const Students: React.FC = () => {
     }
   };
 
-  const fetchMetadata = async () => {
-    try {
-      const [hostelsRes, facultiesRes, chapelsRes] = await Promise.all([
-        api.get('/common/hostels'),
-        api.get('/common/faculties'),
-        api.get('/common/chapels')
-      ]);
-      setHostels(hostelsRes.data);
-      setFaculties(facultiesRes.data);
-      setChapels(chapelsRes.data);
-    } catch (error) {
-      console.error('Failed to fetch metadata', error);
-    }
-  };
-
   useEffect(() => {
     fetchStudents();
-    if (user?.role === 'superadmin') {
-      fetchMetadata();
-    }
   }, [user]);
-
-  const [isBatchDialogOpen, setIsBatchDialogOpen] = useState(false);
-  const [batchData, setBatchData] = useState('');
 
   const handleCreateStudent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,11 +84,7 @@ const Students: React.FC = () => {
     try {
       await api.post('/superadmin/students', newStudent);
       toast.success('Student added successfully');
-      setNewStudent({
-        full_name: '',
-        matric_number: '',
-        level: 100
-      });
+      setNewStudent({ full_name: '', matric_number: '', level: 100 });
       setIsAddDialogOpen(false);
       fetchStudents();
     } catch (error: any) {
@@ -124,18 +98,15 @@ const Students: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // Parse JSON batch data
       const studentsToCreate = JSON.parse(batchData);
-      if (!Array.isArray(studentsToCreate)) {
-        throw new Error('Data must be an array of students');
-      }
+      if (!Array.isArray(studentsToCreate)) throw new Error('Data must be an array');
       await api.post('/superadmin/students/batch', studentsToCreate);
       toast.success('Batch students added successfully');
       setBatchData('');
       setIsBatchDialogOpen(false);
       fetchStudents();
     } catch (error: any) {
-      toast.error(error.message || error.response?.data?.error || 'Failed to add batch students');
+      toast.error(error.message || 'Failed to add batch students');
     } finally {
       setIsSubmitting(false);
     }
@@ -143,277 +114,177 @@ const Students: React.FC = () => {
 
   const filteredStudents = students.filter(student => 
     student.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.matric_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    student.matric_number?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 md:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Students</h2>
-          <p className="text-muted-foreground">
-            Manage student records and hostel assignments.
-          </p>
+          <h2 className="text-2xl md:text-3xl font-black tracking-tight">Student Records</h2>
+          <p className="text-muted-foreground text-sm">Managing all resident profiles and academic data.</p>
         </div>
         {user?.role === 'superadmin' && (
-          <div className="flex gap-2">
-            <Dialog open={isBatchDialogOpen} onOpenChange={setIsBatchDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Batch Add
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Batch Add Students</DialogTitle>
-                  <DialogDescription>
-                    Paste a JSON array of students to add them in bulk.
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleBatchCreate} className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="batch_data">JSON Data</Label>
-                    <textarea 
-                      id="batch_data"
-                      className="w-full h-48 p-2 text-xs font-mono border rounded-md"
-                      placeholder='[{"full_name": "John Doe", "matric_number": "CSC/001", "level": 100}]'
-                      value={batchData}
-                      onChange={(e) => setBatchData(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <DialogFooter>
-                    <Button type="submit" disabled={isSubmitting} className="w-full">
-                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Add Batch
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Add Student
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Add New Student</DialogTitle>
-                  <DialogDescription>
-                    Create a new student account and assign them to academic and residential units.
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleCreateStudent} className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="full_name">Full Name</Label>
-                    <Input 
-                      id="full_name" 
-                      value={newStudent.full_name}
-                      onChange={(e) => setNewStudent(prev => ({ ...prev, full_name: e.target.value }))}
-                      required 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="matric_number">Matric Number</Label>
-                    <Input 
-                      id="matric_number" 
-                      value={newStudent.matric_number}
-                      onChange={(e) => setNewStudent(prev => ({ ...prev, matric_number: e.target.value }))}
-                      required 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="level">Level</Label>
-                    <Select 
-                      value={newStudent.level.toString()} 
-                      onValueChange={(val) => setNewStudent(prev => ({ ...prev, level: parseInt(val) }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="100">100</SelectItem>
-                        <SelectItem value="200">200</SelectItem>
-                        <SelectItem value="300">300</SelectItem>
-                        <SelectItem value="400">400</SelectItem>
-                        <SelectItem value="500">500</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <DialogFooter>
-                    <Button type="submit" disabled={isSubmitting} className="w-full">
-                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Add Student
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none font-bold" onClick={() => setIsBatchDialogOpen(true)}>
+              Batch Import
+            </Button>
+            <Button size="sm" className="flex-1 sm:flex-none font-bold bg-blue-600" onClick={() => setIsAddDialogOpen(true)}>
+              <UserPlus className="h-4 w-4 mr-2" /> Add New
+            </Button>
           </div>
         )}
       </div>
 
+      <div className="relative flex-1 group">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
+        <Input
+          type="search"
+          placeholder="Search by name, matric number, email..."
+          className="pl-10 h-12 bg-white dark:bg-slate-900 border-none shadow-sm rounded-xl ring-offset-transparent focus-visible:ring-2 focus-visible:ring-blue-500"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      <Card className="border-none shadow-md overflow-hidden">
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+            </div>
+          ) : filteredStudents.length === 0 ? (
+            <div className="text-center py-20">
+              <div className="bg-slate-100 dark:bg-slate-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                <Search className="h-8 w-8" />
+              </div>
+              <h3 className="font-bold">No students found</h3>
+              <p className="text-sm text-muted-foreground">Try adjusting your search criteria.</p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop View */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader className="bg-slate-50 dark:bg-slate-900/50">
+                    <TableRow>
+                      <TableHead className="font-bold">Student</TableHead>
+                      <TableHead className="font-bold">Matric Number</TableHead>
+                      <TableHead className="font-bold">Allocation</TableHead>
+                      <TableHead className="font-bold">Level</TableHead>
+                      <TableHead className="text-right font-bold">Details</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredStudents.map((student) => (
+                      <TableRow key={student.id} className="group">
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 ring-2 ring-offset-2 ring-transparent group-hover:ring-blue-500 transition-all">
+                              <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${student.full_name}`} />
+                              <AvatarFallback className="font-bold">{student.full_name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-slate-900 dark:text-slate-100">{student.full_name}</span>
+                              <span className="text-xs text-muted-foreground">{student.email}</span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-mono text-sm uppercase tracking-tight">{student.matric_number || 'N/A'}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold flex items-center gap-1">
+                              <Building2 className="h-3 w-3 text-blue-500" /> {student.hostel_name || 'Unassigned'}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1 uppercase tracking-tighter">
+                              Room: {student.room_number || 'N/A'}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="font-black px-2.5 py-0.5">{student.level}L</Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" onClick={() => { setViewingStudent(student); setIsViewDialogOpen(true); }}>
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile View */}
+              <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                {filteredStudents.map((student) => (
+                  <div key={student.id} className="p-4 flex items-center gap-4 active:bg-slate-50 transition-colors" onClick={() => { setViewingStudent(student); setIsViewDialogOpen(true); }}>
+                    <Avatar className="h-12 w-12 border">
+                      <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${student.full_name}`} />
+                      <AvatarFallback className="font-bold bg-slate-100">{student.full_name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start">
+                        <h4 className="font-black text-slate-900 dark:text-slate-100 truncate">{student.full_name}</h4>
+                        <Badge variant="outline" className="text-[10px] font-black">{student.level}L</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground font-mono uppercase truncate mb-1">{student.matric_number || 'N/A'}</p>
+                      <div className="flex items-center gap-2 text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400">
+                        <Building2 className="h-2.5 w-2.5" /> {student.hostel_name || 'No Allocation'}
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-slate-300 shrink-0" />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* View Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Student Details</DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-[95vw] sm:max-w-md rounded-2xl p-0 overflow-hidden border-none shadow-2xl">
           {viewingStudent && (
-            <div className="space-y-4 py-4">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
+            <div className="relative">
+              <div className="h-24 bg-gradient-to-r from-blue-600 to-indigo-600" />
+              <div className="px-6 pb-6 pt-0 -mt-12 text-center">
+                <Avatar className="h-24 w-24 mx-auto border-4 border-white dark:border-slate-950 shadow-xl mb-4">
                   <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${viewingStudent.full_name}`} />
-                  <AvatarFallback>{viewingStudent.full_name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback className="text-2xl font-black">{viewingStudent.full_name.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <div>
-                  <h3 className="text-lg font-bold">{viewingStudent.full_name}</h3>
-                  <p className="text-sm text-muted-foreground">{viewingStudent.email}</p>
+                <h3 className="text-2xl font-black tracking-tight">{viewingStudent.full_name}</h3>
+                <p className="text-sm text-muted-foreground font-medium mb-6">{viewingStudent.email}</p>
+                
+                <div className="grid grid-cols-2 gap-3 text-left">
+                  {[
+                    { label: 'Matric Number', value: viewingStudent.matric_number, icon: Hash },
+                    { label: 'Academic Level', value: `${viewingStudent.level} Level`, icon: GraduationCap },
+                    { label: 'Assigned Hostel', value: viewingStudent.hostel_name, icon: Building2 },
+                    { label: 'Room Number', value: viewingStudent.room_number, icon: Home },
+                  ].map((item, i) => (
+                    <div key={i} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800">
+                      <p className="text-[10px] font-black uppercase text-slate-500 mb-1 tracking-widest">{item.label}</p>
+                      <p className="text-sm font-bold truncate">{item.value || 'Not Assigned'}</p>
+                    </div>
+                  ))}
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="space-y-1">
-                  <p className="text-muted-foreground font-medium">Matric Number</p>
-                  <p>{viewingStudent.matric_number || 'N/A'}</p>
+                
+                <div className="mt-6 pt-6 border-t flex flex-col gap-2">
+                  <Button className="w-full font-bold h-11" variant="secondary" onClick={() => setIsViewDialogOpen(false)}>
+                    Close Profile
+                  </Button>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-muted-foreground font-medium">Level</p>
-                  <p>{viewingStudent.level || 'N/A'}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-muted-foreground font-medium">Hostel</p>
-                  <p>{viewingStudent.hostel_name || 'Not Assigned'}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-muted-foreground font-medium">Room</p>
-                  <p>{viewingStudent.room_number || 'Not Assigned'}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-muted-foreground font-medium">Faculty</p>
-                  <p>{viewingStudent.faculty_name || 'Not Assigned'}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-muted-foreground font-medium">Chapel</p>
-                  <p>{viewingStudent.chapel_name || 'Not Assigned'}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-muted-foreground font-medium">Phone</p>
-                  <p>{viewingStudent.phone || 'N/A'}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-muted-foreground font-medium">Gender</p>
-                  <p className="capitalize">{viewingStudent.gender || 'N/A'}</p>
-                </div>
-              </div>
-              <div className="pt-4 border-t flex justify-between items-center text-xs text-muted-foreground">
-                <span>Created: {viewingStudent.created_at ? new Date(viewingStudent.created_at).toLocaleDateString() : 'N/A'}</span>
-                <Badge variant={viewingStudent.is_active ? 'default' : 'secondary'}>
-                  {viewingStudent.is_active ? 'Active' : 'Inactive'}
-                </Badge>
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <CardTitle>Student Directory</CardTitle>
-              <CardDescription>
-                Showing {filteredStudents.length} students
-              </CardDescription>
-            </div>
-            <div className="relative w-full max-w-sm">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search by name, matric, or email..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : filteredStudents.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Search className="h-12 w-12 mx-auto mb-4 opacity-20" />
-              <p>No students found matching your search.</p>
-            </div>
-          ) : (
-            <div className="rounded-md border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Student</TableHead>
-                    <TableHead>Matric Number</TableHead>
-                    <TableHead>Hostel & Room</TableHead>
-                    <TableHead>Level</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredStudents.map((student) => (
-                    <TableRow key={student.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${student.full_name}`} />
-                            <AvatarFallback>{student.full_name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{student.full_name}</span>
-                            <span className="text-xs text-muted-foreground">{student.email}</span>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{student.matric_number || 'N/A'}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col text-xs">
-                          <span className="font-medium">{student.hostel_name || 'No Hostel'}</span>
-                          <span className="text-muted-foreground">Room: {student.room_number || 'N/A'}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{student.level || 'N/A'}</TableCell>
-                      <TableCell>
-                        <Badge variant={student.is_active ? 'default' : 'secondary'}>
-                          {student.is_active ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => {
-                            setViewingStudent(student);
-                            setIsViewDialogOpen(true);
-                          }}
-                        >
-                          View
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 };
+
+// Internal icon proxy
+const Hash = ({ className }: { className?: string }) => <span className={className}>#</span>;
 
 export default Students;
